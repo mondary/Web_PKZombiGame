@@ -193,6 +193,86 @@
             color: #fff !important;
         }
 
+        /* Configuration Modal */
+        .modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            border: 3px solid #0f3460;
+            border-radius: 8px;
+            padding: 25px;
+            width: 600px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            color: #e94560;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .config-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-item label {
+            min-width: 120px;
+            color: #4ecca3;
+        }
+
+        .key-input {
+            background: #232931;
+            border: 2px solid #4ecca3;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            width: 100px;
+            text-align: center;
+        }
+
+        .key-input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+
+        .config-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .config-section {
+            margin: 15px 0;
+        }
+
         /* Game Over / Start Screen Overlay */
         #overlay {
             position: absolute;
@@ -408,8 +488,9 @@
         <!-- Control Bar -->
         <div id="control-bar">
             <div class="buttons">
-                <button class="btn" id="build-btn" title="Press 1-4 for quick build">BUILD [B]</button>
-                <button class="btn" id="inventory-btn">INVENTORY [I]</button>
+                <button class="btn" id="build-btn" title="Place defensive structures (Barricades, Walls, Turrets, Spike Traps)">BUILD [B]</button>
+                <button class="btn" id="inventory-btn" title="Manage items (Coming Soon)">INVENTORY [I]</button>
+                <button class="btn" id="settings-btn" title="Configure game settings and controls">SETTINGS</button>
             </div>
             <div class="buttons">
                 <button class="btn mute" id="mute-btn" title="Toggle Sound [M]">&#x1F50A;</button>
@@ -434,12 +515,87 @@
                 <h3>Controls</h3>
                 <p><strong>WASD / Arrows</strong> - Move</p>
                 <p><strong>Mouse + Click</strong> - Aim & Shoot</p>
-                <p><strong>E</strong> - Interact / Rescue</p>
-                <p><strong>1-4</strong> - Quick Build</p>
+                <p><strong>E</strong> - Interact / Rescue Civilians</p>
+                <p><strong>1-4</strong> - Quick Build (Barricade/Wall/Turret/Spike Trap)</p>
+                <p><strong>B</strong> - Toggle Build Mode</p>
+                <p><strong>I</strong> - Inventory (Coming Soon)</p>
                 <p><strong>P</strong> - Pause</p>
+            </div>
+            <div class="config-section">
+                <button class="btn" id="config-btn">CONFIGURE CONTROLS</button>
             </div>
             <p>Survive the night. Rescue civilians.<br>Don't let them join the horde!</p>
             <button class="btn" id="start-btn">START GAME</button>
+        </div>
+        
+        <!-- Key Binding Configuration Modal -->
+        <div id="config-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Configure Controls</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="moveUp">Move Up:</label>
+                        <input type="text" id="moveUp" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="moveLeft">Move Left:</label>
+                        <input type="text" id="moveLeft" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="moveDown">Move Down:</label>
+                        <input type="text" id="moveDown" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="moveRight">Move Right:</label>
+                        <input type="text" id="moveRight" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="shoot">Shoot:</label>
+                        <input type="text" id="shoot" class="key-input" readonly value="Mouse Left">
+                    </div>
+                    <div class="config-item">
+                        <label for="pause">Pause:</label>
+                        <input type="text" id="pause" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="mute">Mute:</label>
+                        <input type="text" id="mute" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="rescue">Rescue:</label>
+                        <input type="text" id="rescue" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="build">Build Mode:</label>
+                        <input type="text" id="build" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="build1">Build Slot 1:</label>
+                        <input type="text" id="build1" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="build2">Build Slot 2:</label>
+                        <input type="text" id="build2" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="build3">Build Slot 3:</label>
+                        <input type="text" id="build3" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="build4">Build Slot 4:</label>
+                        <input type="text" id="build4" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="escape">Cancel/Escape:</label>
+                        <input type="text" id="escape" class="key-input" readonly>
+                    </div>
+                </div>
+                <div class="config-buttons">
+                    <button class="btn" id="save-config-btn">Save</button>
+                    <button class="btn" id="reset-config-btn">Reset to Defaults</button>
+                    <button class="btn" id="close-config-btn">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -719,6 +875,52 @@
             TRANSITION_DURATION: 3 // seconds
         };
 
+        // Default key bindings
+        const DEFAULT_KEY_BINDINGS = {
+            moveUp: 'w',
+            moveLeft: 'a',
+            moveDown: 's',
+            moveRight: 'd',
+            shoot: 'mouse_left',
+            pause: 'p',
+            mute: 'm',
+            rescue: 'e',
+            build: 'b',
+            build1: '1',
+            build2: '2',
+            build3: '3',
+            build4: '4',
+            escape: 'escape'
+        };
+
+        // Current key bindings (will be loaded from localStorage)
+        let KEY_BINDINGS = { ...DEFAULT_KEY_BINDINGS };
+        
+        // Track if settings were opened while game was playing
+        let gamePausedForSettings = false;
+
+        // Load saved key bindings from localStorage
+        function loadKeyBindings() {
+            const saved = localStorage.getItem('zombihorde_key_bindings');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    KEY_BINDINGS = { ...DEFAULT_KEY_BINDINGS, ...parsed };
+                } catch (e) {
+                    console.warn('Failed to load key bindings, using defaults:', e);
+                    KEY_BINDINGS = { ...DEFAULT_KEY_BINDINGS };
+                }
+            }
+        }
+
+        // Save key bindings to localStorage
+        function saveKeyBindings() {
+            localStorage.setItem('zombihorde_key_bindings', JSON.stringify(KEY_BINDINGS));
+        }
+
+        // Initialize key bindings on load
+        loadKeyBindings();
+
         // Player class
         class Player {
             constructor(x, y) {
@@ -736,10 +938,10 @@
                 let dx = 0;
                 let dy = 0;
 
-                if (keys['w'] || keys['arrowup']) dy -= 1;
-                if (keys['s'] || keys['arrowdown']) dy += 1;
-                if (keys['a'] || keys['arrowleft']) dx -= 1;
-                if (keys['d'] || keys['arrowright']) dx += 1;
+                if (keys[KEY_BINDINGS.moveUp] || keys['arrowup']) dy -= 1;
+                if (keys[KEY_BINDINGS.moveDown] || keys['arrowdown']) dy += 1;
+                if (keys[KEY_BINDINGS.moveLeft] || keys['arrowleft']) dx -= 1;
+                if (keys[KEY_BINDINGS.moveRight] || keys['arrowright']) dx += 1;
 
                 // Normalize diagonal movement
                 if (dx !== 0 && dy !== 0) {
@@ -820,6 +1022,18 @@
                 // Check if out of bounds
                 if (this.x < 0 || this.x > CONFIG.CANVAS_WIDTH ||
                     this.y < 0 || this.y > CONFIG.CANVAS_HEIGHT) {
+                    this.alive = false;
+                }
+                
+                // Prevent projectiles from passing through the base area
+                const BASE_LEFT = 350;
+                const BASE_RIGHT = 450;
+                const BASE_TOP = 200;
+                const BASE_BOTTOM = 300;
+                
+                // Destroy projectile if it enters the base area
+                if (this.x >= BASE_LEFT && this.x <= BASE_RIGHT &&
+                    this.y >= BASE_TOP && this.y <= BASE_BOTTOM) {
                     this.alive = false;
                 }
             }
@@ -950,6 +1164,26 @@
                         this.x += (dx / dist) * this.speed * deltaTime;
                         this.y += (dy / dist) * this.speed * deltaTime;
                     }
+                }
+
+                // Prevent zombies from entering the protected base area
+                const BASE_LEFT = 350;
+                const BASE_RIGHT = 450;
+                const BASE_TOP = 200;
+                const BASE_BOTTOM = 300;
+                
+                // Check if zombie is trying to enter the base area
+                if (this.x + this.radius > BASE_LEFT && this.x - this.radius < BASE_RIGHT &&
+                    this.y + this.radius > BASE_TOP && this.y - this.radius < BASE_BOTTOM) {
+                    // Push the zombie back outside the base area
+                    const centerX = (BASE_LEFT + BASE_RIGHT) / 2;
+                    const centerY = (BASE_TOP + BASE_BOTTOM) / 2;
+                    const angleToCenter = Math.atan2(this.y - centerY, this.x - centerX);
+                    
+                    // Move the zombie away from the center of the base
+                    const safeDistance = Math.max(BASE_RIGHT - BASE_LEFT, BASE_TOP - BASE_BOTTOM) / 2 + this.radius + 5;
+                    this.x = centerX + Math.cos(angleToCenter) * safeDistance;
+                    this.y = centerY + Math.sin(angleToCenter) * safeDistance;
                 }
 
                 // Keep zombie in bounds
@@ -1528,6 +1762,134 @@
         const startBtn = document.getElementById('start-btn');
         const pauseBtn = document.getElementById('pause-btn');
         const muteBtn = document.getElementById('mute-btn');
+        const settingsBtn = document.getElementById('settings-btn');
+        const configModal = document.getElementById('config-modal');
+        const configBtn = document.getElementById('config-btn');
+        const closeConfigBtn = document.getElementById('close-config-btn');
+        const saveConfigBtn = document.getElementById('save-config-btn');
+        const resetConfigBtn = document.getElementById('reset-config-btn');
+
+        // Open configuration modal
+        configBtn.addEventListener('click', () => {
+            populateConfigInputs();
+            configModal.classList.remove('hidden');
+        });
+
+        // Close configuration modal
+        closeConfigBtn.addEventListener('click', () => {
+            configModal.classList.add('hidden');
+            // If the game was paused for settings, resume it
+            if (game.state === GameState.PAUSED && gamePausedForSettings) {
+                game.state = GameState.PLAYING;
+                gamePausedForSettings = false;
+                // Only remove active class if the pause button was showing resume (meaning it was manually paused)
+                if (pauseBtn.textContent === 'RESUME [P]') {
+                    pauseBtn.textContent = 'PAUSE [P]';
+                    pauseBtn.classList.remove('active');
+                }
+            }
+        });
+
+        // Save configuration
+        saveConfigBtn.addEventListener('click', () => {
+            saveCurrentConfig();
+            configModal.classList.add('hidden');
+            // If the game was paused for settings, resume it
+            if (game.state === GameState.PAUSED && gamePausedForSettings) {
+                game.state = GameState.PLAYING;
+                gamePausedForSettings = false;
+                // Only remove active class if the pause button was showing resume (meaning it was manually paused)
+                if (pauseBtn.textContent === 'RESUME [P]') {
+                    pauseBtn.textContent = 'PAUSE [P]';
+                    pauseBtn.classList.remove('active');
+                }
+            }
+        });
+
+        // Reset to defaults
+        resetConfigBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to reset all key bindings to defaults?')) {
+                KEY_BINDINGS = { ...DEFAULT_KEY_BINDINGS };
+                populateConfigInputs();
+                saveKeyBindings();
+            }
+        });
+
+        // Populate input fields with current key bindings
+        function populateConfigInputs() {
+            document.getElementById('moveUp').value = KEY_BINDINGS.moveUp.toUpperCase();
+            document.getElementById('moveLeft').value = KEY_BINDINGS.moveLeft.toUpperCase();
+            document.getElementById('moveDown').value = KEY_BINDINGS.moveDown.toUpperCase();
+            document.getElementById('moveRight').value = KEY_BINDINGS.moveRight.toUpperCase();
+            document.getElementById('shoot').value = 'Mouse Left';
+            document.getElementById('pause').value = KEY_BINDINGS.pause.toUpperCase();
+            document.getElementById('mute').value = KEY_BINDINGS.mute.toUpperCase();
+            document.getElementById('rescue').value = KEY_BINDINGS.rescue.toUpperCase();
+            document.getElementById('build').value = KEY_BINDINGS.build.toUpperCase();
+            document.getElementById('build1').value = KEY_BINDINGS.build1;
+            document.getElementById('build2').value = KEY_BINDINGS.build2;
+            document.getElementById('build3').value = KEY_BINDINGS.build3;
+            document.getElementById('build4').value = KEY_BINDINGS.build4;
+            document.getElementById('escape').value = KEY_BINDINGS.escape.toUpperCase();
+        }
+
+        // Save current configuration from inputs
+        function saveCurrentConfig() {
+            KEY_BINDINGS.moveUp = document.getElementById('moveUp').value.toLowerCase();
+            KEY_BINDINGS.moveLeft = document.getElementById('moveLeft').value.toLowerCase();
+            KEY_BINDINGS.moveDown = document.getElementById('moveDown').value.toLowerCase();
+            KEY_BINDINGS.moveRight = document.getElementById('moveRight').value.toLowerCase();
+            // Shooting remains mouse left - no need to change
+            KEY_BINDINGS.pause = document.getElementById('pause').value.toLowerCase();
+            KEY_BINDINGS.mute = document.getElementById('mute').value.toLowerCase();
+            KEY_BINDINGS.rescue = document.getElementById('rescue').value.toLowerCase();
+            KEY_BINDINGS.build = document.getElementById('build').value.toLowerCase();
+            KEY_BINDINGS.build1 = document.getElementById('build1').value.toLowerCase();
+            KEY_BINDINGS.build2 = document.getElementById('build2').value.toLowerCase();
+            KEY_BINDINGS.build3 = document.getElementById('build3').value.toLowerCase();
+            KEY_BINDINGS.build4 = document.getElementById('build4').value.toLowerCase();
+            KEY_BINDINGS.escape = document.getElementById('escape').value.toLowerCase();
+            
+            saveKeyBindings();
+        }
+
+        // Set up key input listeners for configuration
+        function setupKeyInputListeners() {
+            const keyInputs = [
+                'moveUp', 'moveLeft', 'moveDown', 'moveRight',
+                'pause', 'mute', 'rescue', 'build',
+                'build1', 'build2', 'build3', 'build4', 'escape'
+            ];
+
+            keyInputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input && inputId !== 'shoot') { // Shooting is mouse only
+                    input.addEventListener('keydown', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Skip modifier keys that don't make sense as standalone bindings
+                        if (['shift', 'control', 'alt', 'meta'].includes(e.key.toLowerCase())) {
+                            return;
+                        }
+                        
+                        // Use the original key value but convert to lowercase for storage
+                        const key = e.key.toLowerCase();
+                        input.value = e.key.toUpperCase();
+                        
+                        // Blur the input to stop listening for this specific input
+                        input.blur();
+                    });
+                    
+                    input.addEventListener('focus', (e) => {
+                        e.target.select(); // Select all text for easy replacement
+                    });
+                }
+            });
+        }
+
+        // Initialize key input listeners after DOM loads
+        document.addEventListener('DOMContentLoaded', setupKeyInputListeners);
 
         // UI Update functions with animation support
         const prevResources = { health: 100, ammo: 30, wood: 0, metal: 0 };
@@ -1848,8 +2210,8 @@
                 if (game.player) {
                     game.player.update(deltaTime, game.keys, game.mouse);
 
-                    // Handle shooting (on mouse click, with ammo check) - not in build mode
-                    if (!game.buildMode && game.mouse.down && !game.mouseWasDown && game.player.canShoot() && game.resources.ammo > 0) {
+                    // Handle shooting (continuous fire while mouse is held down, with ammo check) - not in build mode
+                    if (!game.buildMode && game.mouse.down && game.player.canShoot() && game.resources.ammo > 0) {
                         // Create projectile from player position
                         const muzzleX = game.player.x + Math.cos(game.player.angle) * 20;
                         const muzzleY = game.player.y + Math.sin(game.player.angle) * 20;
@@ -2084,21 +2446,35 @@
             muteBtn.classList.toggle('muted', !enabled);
         });
 
+        // Settings button
+        settingsBtn.addEventListener('click', () => {
+            populateConfigInputs();
+            configModal.classList.remove('hidden');
+            // Pause the game when settings are opened
+            if (game.state === GameState.PLAYING) {
+                game.state = GameState.PAUSED;
+                gamePausedForSettings = true;
+                pauseBtn.textContent = 'RESUME [P]';
+                pauseBtn.classList.add('active');
+            }
+        });
+
         // Keyboard input
         document.addEventListener('keydown', (e) => {
             game.keys[e.key.toLowerCase()] = true;
 
-            if (e.key.toLowerCase() === 'p') {
+            // Check for configurable key bindings
+            if (e.key.toLowerCase() === KEY_BINDINGS.pause) {
                 pauseBtn.click();
             }
 
             // Mute toggle
-            if (e.key.toLowerCase() === 'm') {
+            if (e.key.toLowerCase() === KEY_BINDINGS.mute) {
                 muteBtn.click();
             }
 
-            // Rescue key (E)
-            if (e.key.toLowerCase() === 'e' && game.state === GameState.PLAYING && game.player) {
+            // Rescue key
+            if (e.key.toLowerCase() === KEY_BINDINGS.rescue && game.state === GameState.PLAYING && game.player) {
                 for (const civilian of game.civilians) {
                     if (civilian.alive && !civilian.rescued) {
                         const dist = civilian.distanceTo(game.player.x, game.player.y);
@@ -2117,7 +2493,7 @@
             }
 
             // Build mode toggle
-            if (e.key.toLowerCase() === 'b' && game.state === GameState.PLAYING) {
+            if (e.key.toLowerCase() === KEY_BINDINGS.build && game.state === GameState.PLAYING) {
                 game.buildMode = !game.buildMode;
                 if (!game.buildMode) {
                     game.selectedBuildType = null;
@@ -2127,26 +2503,26 @@
 
             // Quick build keys (1-4)
             if (game.state === GameState.PLAYING) {
-                if (e.key === '1') {
+                if (e.key === KEY_BINDINGS.build1) {
                     game.buildMode = true;
                     game.selectedBuildType = BuildingType.BARRICADE;
                     document.getElementById('build-btn').classList.add('active');
-                } else if (e.key === '2') {
+                } else if (e.key === KEY_BINDINGS.build2) {
                     game.buildMode = true;
                     game.selectedBuildType = BuildingType.WALL;
                     document.getElementById('build-btn').classList.add('active');
-                } else if (e.key === '3') {
+                } else if (e.key === KEY_BINDINGS.build3) {
                     game.buildMode = true;
                     game.selectedBuildType = BuildingType.TURRET;
                     document.getElementById('build-btn').classList.add('active');
-                } else if (e.key === '4') {
+                } else if (e.key === KEY_BINDINGS.build4) {
                     game.buildMode = true;
                     game.selectedBuildType = BuildingType.SPIKE_TRAP;
                     document.getElementById('build-btn').classList.add('active');
                 }
 
                 // Cancel build mode with Escape
-                if (e.key === 'Escape' && game.buildMode) {
+                if (e.key === KEY_BINDINGS.escape && game.buildMode) {
                     game.buildMode = false;
                     game.selectedBuildType = null;
                     document.getElementById('build-btn').classList.remove('active');
@@ -2189,6 +2565,7 @@
         // Initialize
         updateUI();
         requestAnimationFrame(gameLoop);
+    </script>
     </script>
 </body>
 </html>
