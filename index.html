@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZombiHorde - Survival Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            color: #eee;
+        }
+
+        #game-container {
+            background: #16213e;
+            border: 3px solid #0f3460;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        #status-bar {
+            background: #0f3460;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e94560;
+        }
+
+        #status-bar .left {
+            display: flex;
+            gap: 20px;
+        }
+
+        #status-bar .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #status-bar .stat-label {
+            color: #888;
+            font-size: 12px;
+        }
+
+        #status-bar .stat-value {
+            color: #fff;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        #resource-bar {
+            background: #1a1a2e;
+            padding: 8px 15px;
+            display: flex;
+            gap: 25px;
+            border-bottom: 1px solid #0f3460;
+        }
+
+        #resource-bar .resource {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        #resource-bar .resource-icon {
+            font-size: 16px;
+        }
+
+        #resource-bar .resource-value {
+            color: #4ecca3;
+            font-weight: bold;
+        }
+
+        #game-canvas {
+            display: block;
+            background: #232931;
+            cursor: crosshair;
+        }
+
+        #control-bar {
+            background: #0f3460;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 2px solid #e94560;
+        }
+
+        #control-bar .buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: #1a1a2e;
+            color: #fff;
+            border: 2px solid #4ecca3;
+            padding: 8px 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #4ecca3;
+            color: #1a1a2e;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn.active {
+            background: #4ecca3;
+            color: #1a1a2e;
+        }
+
+        .btn.mute {
+            font-size: 16px;
+            padding: 8px 12px;
+        }
+
+        .btn.mute.muted {
+            background: #e74c3c;
+            border-color: #e74c3c;
+            color: #fff;
+        }
+
+        #phase-indicator {
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        #phase-indicator.day {
+            background: #f4a261;
+            color: #1a1a2e;
+            box-shadow: 0 0 10px rgba(244, 162, 97, 0.5);
+        }
+
+        #phase-indicator.night {
+            background: #9b59b6;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(155, 89, 182, 0.5);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        #timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e94560;
+            transition: color 0.3s ease;
+        }
+
+        #timer.warning {
+            color: #ff0000;
+            animation: blink 0.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .resource-value {
+            transition: transform 0.2s ease;
+        }
+
+        .resource-value.changed {
+            transform: scale(1.3);
+            color: #fff !important;
+        }
+
+        /* Game Over / Start Screen Overlay */
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        #overlay.hidden {
+            display: none;
+        }
+
+        #overlay h1 {
+            font-size: 48px;
+            color: #e94560;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+
+        #overlay h2 {
+            font-size: 24px;
+            color: #4ecca3;
+            margin-bottom: 30px;
+        }
+
+        #overlay p {
+            color: #888;
+            margin-bottom: 20px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        #overlay .controls-info {
+            background: #1a1a2e;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        #overlay .controls-info h3 {
+            color: #4ecca3;
+            margin-bottom: 10px;
+        }
+
+        #overlay .controls-info p {
+            margin: 5px 0;
+            color: #ccc;
+        }
+
+        #start-btn {
+            font-size: 18px;
+            padding: 15px 40px;
+            background: #e94560;
+            border-color: #e94560;
+        }
+
+        #start-btn:hover {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        /* Wave Announcement */
+        #wave-announce {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: #e94560;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.8);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+            transition: opacity 0.3s ease;
+        }
+
+        #wave-announce.show {
+            opacity: 1;
+            animation: waveAnnounce 2s ease-out forwards;
+        }
+
+        @keyframes waveAnnounce {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            40% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
+        /* Low Resource Warnings */
+        .resource.warning .resource-value {
+            color: #e74c3c !important;
+            animation: warningPulse 0.5s ease-in-out infinite;
+        }
+
+        .resource.critical .resource-value {
+            color: #ff0000 !important;
+            animation: warningPulse 0.25s ease-in-out infinite;
+        }
+
+        @keyframes warningPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Day transition overlay */
+        #day-transition {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            font-weight: bold;
+            color: #f4a261;
+            text-shadow: 0 0 20px rgba(244, 162, 97, 0.8);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        #day-transition.show {
+            animation: dayAnnounce 2s ease-out forwards;
+        }
+
+        @keyframes dayAnnounce {
+            0% { opacity: 0; transform: translate(-50%, -50%) translateY(20px); }
+            20% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Rescue prompt */
+        #rescue-prompt {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(78, 204, 163, 0.9);
+            color: #1a1a2e;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+            transition: opacity 0.2s ease;
+        }
+
+        #rescue-prompt.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container" style="position: relative;">
+        <!-- Status Bar -->
+        <div id="status-bar">
+            <div class="left">
+                <div class="stat">
+                    <span class="stat-label">DAY</span>
+                    <span class="stat-value" id="day-count">1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">WAVE</span>
+                    <span class="stat-value" id="wave-count">1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">SCORE</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+            </div>
+            <div class="right">
+                <span id="phase-indicator" class="day">DAY</span>
+                <span id="timer">30</span>
+            </div>
+        </div>
+
+        <!-- Resource Bar -->
+        <div id="resource-bar">
+            <div class="resource">
+                <span class="resource-icon">&#x2665;</span>
+                <span class="resource-value" id="health">100</span>
+            </div>
+            <div class="resource">
+                <span class="resource-icon">&#x1F52B;</span>
+                <span class="resource-value" id="ammo">30</span>
+            </div>
+            <div class="resource">
+                <span class="resource-icon">&#x1FAB5;</span>
+                <span class="resource-value" id="wood">0</span>
+            </div>
+            <div class="resource">
+                <span class="resource-icon">&#x2699;</span>
+                <span class="resource-value" id="metal">0</span>
+            </div>
+            <div class="resource">
+                <span class="resource-icon">&#x1F465;</span>
+                <span class="resource-value" id="civilians">0</span>
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="game-canvas" width="800" height="500"></canvas>
+
+        <!-- Control Bar -->
+        <div id="control-bar">
+            <div class="buttons">
+                <button class="btn" id="build-btn" title="Press 1-4 for quick build">BUILD [B]</button>
+                <button class="btn" id="inventory-btn">INVENTORY [I]</button>
+            </div>
+            <div class="buttons">
+                <button class="btn mute" id="mute-btn" title="Toggle Sound [M]">&#x1F50A;</button>
+                <button class="btn" id="pause-btn">PAUSE [P]</button>
+            </div>
+        </div>
+
+        <!-- Wave Announcement Overlay -->
+        <div id="wave-announce">WAVE 1</div>
+
+        <!-- Day Transition Overlay -->
+        <div id="day-transition">DAY 1</div>
+
+        <!-- Rescue Prompt -->
+        <div id="rescue-prompt">Press [E] to rescue!</div>
+
+        <!-- Start/Game Over Overlay -->
+        <div id="overlay">
+            <h1>ZOMBIHORDE</h1>
+            <h2>Survival is just the beginning</h2>
+            <div class="controls-info">
+                <h3>Controls</h3>
+                <p><strong>WASD / Arrows</strong> - Move</p>
+                <p><strong>Mouse + Click</strong> - Aim & Shoot</p>
+                <p><strong>E</strong> - Interact / Rescue</p>
+                <p><strong>1-4</strong> - Quick Build</p>
+                <p><strong>P</strong> - Pause</p>
+            </div>
+            <p>Survive the night. Rescue civilians.<br>Don't let them join the horde!</p>
+            <button class="btn" id="start-btn">START GAME</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== AUDIO SYSTEM ====================
+        // Procedural sound effects using Web Audio API
+        class AudioManager {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+                this.masterVolume = 0.3;
+            }
+
+            init() {
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.warn('Web Audio API not supported');
+                    this.enabled = false;
+                }
+            }
+
+            resume() {
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            // Create oscillator-based sounds
+            playTone(frequency, duration, type = 'square', volume = 0.3) {
+                if (!this.enabled || !this.ctx) return;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(frequency, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(frequency * 0.5, this.ctx.currentTime + duration);
+
+                gain.gain.setValueAtTime(volume * this.masterVolume, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            }
+
+            // Noise-based sounds (for explosions, hits)
+            playNoise(duration, volume = 0.3) {
+                if (!this.enabled || !this.ctx) return;
+
+                const bufferSize = this.ctx.sampleRate * duration;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const source = this.ctx.createBufferSource();
+                const gain = this.ctx.createGain();
+                const filter = this.ctx.createBiquadFilter();
+
+                source.buffer = buffer;
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1000, this.ctx.currentTime);
+                filter.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + duration);
+
+                gain.gain.setValueAtTime(volume * this.masterVolume, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+
+                source.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                source.start();
+            }
+
+            // Specific sound effects
+            playShoot() {
+                this.playNoise(0.08, 0.4);
+                this.playTone(800, 0.05, 'square', 0.2);
+            }
+
+            playZombieHit() {
+                this.playTone(200, 0.1, 'sawtooth', 0.3);
+            }
+
+            playZombieDeath() {
+                this.playNoise(0.2, 0.4);
+                this.playTone(150, 0.3, 'sawtooth', 0.3);
+            }
+
+            playPlayerHit() {
+                this.playTone(100, 0.15, 'square', 0.5);
+                this.playNoise(0.1, 0.3);
+            }
+
+            playPickup() {
+                this.playTone(600, 0.05, 'sine', 0.3);
+                setTimeout(() => this.playTone(800, 0.05, 'sine', 0.3), 50);
+            }
+
+            playBuild() {
+                this.playTone(300, 0.1, 'square', 0.2);
+                this.playTone(400, 0.1, 'square', 0.2);
+            }
+
+            playWaveStart() {
+                this.playTone(200, 0.3, 'sawtooth', 0.4);
+                setTimeout(() => this.playTone(150, 0.5, 'sawtooth', 0.5), 200);
+            }
+
+            playDayStart() {
+                this.playTone(400, 0.2, 'sine', 0.3);
+                setTimeout(() => this.playTone(500, 0.2, 'sine', 0.3), 150);
+                setTimeout(() => this.playTone(600, 0.3, 'sine', 0.3), 300);
+            }
+
+            playGameOver() {
+                this.playTone(300, 0.3, 'sawtooth', 0.4);
+                setTimeout(() => this.playTone(200, 0.4, 'sawtooth', 0.4), 300);
+                setTimeout(() => this.playTone(100, 0.5, 'sawtooth', 0.5), 600);
+            }
+
+            playRescue() {
+                this.playTone(500, 0.1, 'sine', 0.3);
+                setTimeout(() => this.playTone(700, 0.1, 'sine', 0.3), 100);
+                setTimeout(() => this.playTone(900, 0.15, 'sine', 0.4), 200);
+            }
+
+            playCivilianDeath() {
+                this.playTone(400, 0.15, 'sine', 0.3);
+                setTimeout(() => this.playTone(200, 0.2, 'sine', 0.3), 100);
+            }
+
+            toggle() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+        }
+
+        const audio = new AudioManager();
+
+        // ==================== PARTICLE SYSTEM ====================
+        class Particle {
+            constructor(x, y, color, speedX, speedY, life = 0.5, size = 3) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.speedX = speedX;
+                this.speedY = speedY;
+                this.life = life;
+                this.maxLife = life;
+                this.size = size;
+                this.alive = true;
+            }
+
+            update(deltaTime) {
+                this.x += this.speedX * deltaTime;
+                this.y += this.speedY * deltaTime;
+                this.speedX *= 0.98;
+                this.speedY *= 0.98;
+                this.life -= deltaTime;
+                if (this.life <= 0) this.alive = false;
+            }
+
+            draw(ctx) {
+                if (!this.alive) return;
+                const alpha = this.life / this.maxLife;
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        class ParticleSystem {
+            constructor() {
+                this.particles = [];
+            }
+
+            emit(x, y, color, count = 10, speed = 100) {
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const spd = speed * (0.5 + Math.random() * 0.5);
+                    this.particles.push(new Particle(
+                        x, y, color,
+                        Math.cos(angle) * spd,
+                        Math.sin(angle) * spd,
+                        0.3 + Math.random() * 0.3,
+                        2 + Math.random() * 3
+                    ));
+                }
+            }
+
+            emitDirectional(x, y, angle, color, count = 5, spread = 0.5) {
+                for (let i = 0; i < count; i++) {
+                    const a = angle + (Math.random() - 0.5) * spread;
+                    const spd = 150 + Math.random() * 100;
+                    this.particles.push(new Particle(
+                        x, y, color,
+                        Math.cos(a) * spd,
+                        Math.sin(a) * spd,
+                        0.15 + Math.random() * 0.1,
+                        2 + Math.random() * 2
+                    ));
+                }
+            }
+
+            update(deltaTime) {
+                for (const p of this.particles) {
+                    p.update(deltaTime);
+                }
+                this.particles = this.particles.filter(p => p.alive);
+            }
+
+            draw(ctx) {
+                for (const p of this.particles) {
+                    p.draw(ctx);
+                }
+            }
+        }
+
+        const particles = new ParticleSystem();
+
+        // ==================== SCREEN SHAKE ====================
+        const screenShake = {
+            intensity: 0,
+            duration: 0,
+            offsetX: 0,
+            offsetY: 0,
+
+            shake(intensity, duration) {
+                this.intensity = Math.max(this.intensity, intensity);
+                this.duration = Math.max(this.duration, duration);
+            },
+
+            update(deltaTime) {
+                if (this.duration > 0) {
+                    this.offsetX = (Math.random() - 0.5) * this.intensity * 2;
+                    this.offsetY = (Math.random() - 0.5) * this.intensity * 2;
+                    this.duration -= deltaTime;
+                    this.intensity *= 0.9;
+                } else {
+                    this.offsetX = 0;
+                    this.offsetY = 0;
+                    this.intensity = 0;
+                }
+            }
+        };
+
+        // Game State
+        const GameState = {
+            MENU: 'menu',
+            PLAYING: 'playing',
+            PAUSED: 'paused',
+            GAME_OVER: 'game_over'
+        };
+
+        const Phase = {
+            DAY: 'day',
+            NIGHT: 'night',
+            TRANSITION: 'transition'
+        };
+
+        // Game Configuration
+        const CONFIG = {
+            CANVAS_WIDTH: 800,
+            CANVAS_HEIGHT: 500,
+            DAY_DURATION: 30,      // seconds
+            NIGHT_DURATION: 45,   // seconds
+            TRANSITION_DURATION: 3 // seconds
+        };
+
+        // Player class
+        class Player {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 15;
+                this.speed = 150; // pixels per second
+                this.angle = 0; // facing direction in radians
+                this.shootCooldown = 0;
+                this.shootRate = 0.2; // seconds between shots
+            }
+
+            update(deltaTime, keys, mouse) {
+                // Movement with WASD/Arrow keys
+                let dx = 0;
+                let dy = 0;
+
+                if (keys['w'] || keys['arrowup']) dy -= 1;
+                if (keys['s'] || keys['arrowdown']) dy += 1;
+                if (keys['a'] || keys['arrowleft']) dx -= 1;
+                if (keys['d'] || keys['arrowright']) dx += 1;
+
+                // Normalize diagonal movement
+                if (dx !== 0 && dy !== 0) {
+                    const len = Math.sqrt(dx * dx + dy * dy);
+                    dx /= len;
+                    dy /= len;
+                }
+
+                // Apply movement
+                this.x += dx * this.speed * deltaTime;
+                this.y += dy * this.speed * deltaTime;
+
+                // Keep player in bounds
+                this.x = Math.max(this.radius, Math.min(CONFIG.CANVAS_WIDTH - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(CONFIG.CANVAS_HEIGHT - this.radius, this.y));
+
+                // Calculate angle to mouse
+                this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
+
+                // Update shoot cooldown
+                if (this.shootCooldown > 0) {
+                    this.shootCooldown -= deltaTime;
+                }
+            }
+
+            canShoot() {
+                return this.shootCooldown <= 0;
+            }
+
+            shoot() {
+                this.shootCooldown = this.shootRate;
+            }
+
+            draw(ctx) {
+                // Draw player body
+                ctx.fillStyle = '#3498db';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw direction indicator (gun barrel)
+                const barrelLength = 20;
+                const barrelEndX = this.x + Math.cos(this.angle) * barrelLength;
+                const barrelEndY = this.y + Math.sin(this.angle) * barrelLength;
+
+                ctx.strokeStyle = '#2c3e50';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(barrelEndX, barrelEndY);
+                ctx.stroke();
+
+                // Draw player indicator
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 10px Courier New';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('P', this.x, this.y);
+            }
+        }
+
+        // Projectile class
+        class Projectile {
+            constructor(x, y, angle, speed = 400) {
+                this.x = x;
+                this.y = y;
+                this.angle = angle;
+                this.speed = speed;
+                this.radius = 4;
+                this.damage = 10;
+                this.alive = true;
+            }
+
+            update(deltaTime) {
+                this.x += Math.cos(this.angle) * this.speed * deltaTime;
+                this.y += Math.sin(this.angle) * this.speed * deltaTime;
+
+                // Check if out of bounds
+                if (this.x < 0 || this.x > CONFIG.CANVAS_WIDTH ||
+                    this.y < 0 || this.y > CONFIG.CANVAS_HEIGHT) {
+                    this.alive = false;
+                }
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = '#f1c40f';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw trail
+                ctx.strokeStyle = 'rgba(241, 196, 15, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(
+                    this.x - Math.cos(this.angle) * 10,
+                    this.y - Math.sin(this.angle) * 10
+                );
+                ctx.stroke();
+            }
+        }
+
+        // Zombie types configuration
+        const ZombieType = {
+            WALKER: {
+                name: 'Walker',
+                speed: 40,
+                damage: 10,
+                maxHealth: 30,
+                radius: 12,
+                color: '#2ecc71',
+                score: 10
+            },
+            RUNNER: {
+                name: 'Runner',
+                speed: 100,
+                damage: 15,
+                maxHealth: 20,
+                radius: 10,
+                color: '#e74c3c',
+                score: 20
+            },
+            BRUTE: {
+                name: 'Brute',
+                speed: 25,
+                damage: 40,
+                maxHealth: 150,
+                radius: 20,
+                color: '#8e44ad',
+                score: 50
+            },
+            SPITTER: {
+                name: 'Spitter',
+                speed: 50,
+                damage: 25,
+                maxHealth: 40,
+                radius: 14,
+                color: '#f39c12',
+                attackRange: 150,
+                score: 30
+            }
+        };
+
+        // Zombie class
+        class Zombie {
+            constructor(x, y, type = ZombieType.WALKER) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.speed = type.speed;
+                this.damage = type.damage;
+                this.health = type.maxHealth;
+                this.maxHealth = type.maxHealth;
+                this.radius = type.radius;
+                this.color = type.color;
+                this.alive = true;
+                this.attackCooldown = 0;
+                this.attackRate = 1; // seconds between attacks
+                this.target = null; // player or civilian
+            }
+
+            update(deltaTime, player, civilians, baseCenter) {
+                if (!this.alive) return;
+
+                // Decrease attack cooldown
+                if (this.attackCooldown > 0) {
+                    this.attackCooldown -= deltaTime;
+                }
+
+                // Find nearest target (player or non-rescued civilian)
+                let nearestDist = Infinity;
+                this.target = null;
+
+                // Check player distance
+                if (player) {
+                    const distToPlayer = this.distanceTo(player.x, player.y);
+                    if (distToPlayer < nearestDist) {
+                        nearestDist = distToPlayer;
+                        this.target = { x: player.x, y: player.y, type: 'player' };
+                    }
+                }
+
+                // Check civilians (non-rescued ones are targets)
+                for (const civilian of civilians) {
+                    if (!civilian.rescued && civilian.alive) {
+                        const dist = this.distanceTo(civilian.x, civilian.y);
+                        if (dist < nearestDist) {
+                            nearestDist = dist;
+                            this.target = { x: civilian.x, y: civilian.y, type: 'civilian', ref: civilian };
+                        }
+                    }
+                }
+
+                // If no specific target, move toward base
+                if (!this.target) {
+                    this.target = { x: baseCenter.x, y: baseCenter.y, type: 'base' };
+                }
+
+                // Move toward target
+                if (this.target) {
+                    const dx = this.target.x - this.x;
+                    const dy = this.target.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist > this.radius) {
+                        // Normalize and move
+                        this.x += (dx / dist) * this.speed * deltaTime;
+                        this.y += (dy / dist) * this.speed * deltaTime;
+                    }
+                }
+
+                // Keep zombie in bounds
+                this.x = Math.max(this.radius, Math.min(CONFIG.CANVAS_WIDTH - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(CONFIG.CANVAS_HEIGHT - this.radius, this.y));
+            }
+
+            distanceTo(x, y) {
+                return Math.sqrt((this.x - x) ** 2 + (this.y - y) ** 2);
+            }
+
+            takeDamage(amount) {
+                this.health -= amount;
+                if (this.health <= 0) {
+                    this.alive = false;
+                    return true; // died
+                }
+                return false;
+            }
+
+            canAttack() {
+                return this.attackCooldown <= 0;
+            }
+
+            attack() {
+                this.attackCooldown = this.attackRate;
+            }
+
+            draw(ctx) {
+                if (!this.alive) return;
+
+                // Draw zombie body
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw darker outline
+                ctx.strokeStyle = '#1a1a2e';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw health bar if damaged
+                if (this.health < this.maxHealth) {
+                    const barWidth = this.radius * 2;
+                    const barHeight = 4;
+                    const healthPercent = this.health / this.maxHealth;
+
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(this.x - barWidth / 2, this.y - this.radius - 8, barWidth, barHeight);
+                    ctx.fillStyle = healthPercent > 0.5 ? '#2ecc71' : healthPercent > 0.25 ? '#f1c40f' : '#e74c3c';
+                    ctx.fillRect(this.x - barWidth / 2, this.y - this.radius - 8, barWidth * healthPercent, barHeight);
+                }
+
+                // Draw type indicator
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 8px Courier New';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.type.name[0], this.x, this.y);
+            }
+        }
+
+        // Civilian class
+        class Civilian {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 12;
+                this.speed = 30;
+                this.health = 50;
+                this.maxHealth = 50;
+                this.alive = true;
+                this.rescued = false;
+                this.panicTimer = 0;
+                this.wanderAngle = Math.random() * Math.PI * 2;
+                this.wanderTimer = 0;
+            }
+
+            update(deltaTime, player, zombies, baseCenter) {
+                if (!this.alive) return;
+
+                // If rescued, move toward base
+                if (this.rescued) {
+                    const dx = baseCenter.x - this.x;
+                    const dy = baseCenter.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > 30) {
+                        this.x += (dx / dist) * this.speed * 2 * deltaTime;
+                        this.y += (dy / dist) * this.speed * 2 * deltaTime;
+                    }
+                    return;
+                }
+
+                // Check for nearby zombies (panic)
+                let nearestZombieDist = Infinity;
+                let nearestZombie = null;
+                for (const zombie of zombies) {
+                    if (!zombie.alive) continue;
+                    const dist = this.distanceTo(zombie.x, zombie.y);
+                    if (dist < nearestZombieDist) {
+                        nearestZombieDist = dist;
+                        nearestZombie = zombie;
+                    }
+                }
+
+                // Panic and run from zombies
+                if (nearestZombieDist < 100 && nearestZombie) {
+                    const dx = this.x - nearestZombie.x;
+                    const dy = this.y - nearestZombie.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    this.x += (dx / dist) * this.speed * 1.5 * deltaTime;
+                    this.y += (dy / dist) * this.speed * 1.5 * deltaTime;
+                    this.panicTimer = 1;
+                } else if (this.panicTimer > 0) {
+                    this.panicTimer -= deltaTime;
+                } else {
+                    // Wander randomly
+                    this.wanderTimer -= deltaTime;
+                    if (this.wanderTimer <= 0) {
+                        this.wanderAngle = Math.random() * Math.PI * 2;
+                        this.wanderTimer = 2 + Math.random() * 3;
+                    }
+                    this.x += Math.cos(this.wanderAngle) * this.speed * 0.5 * deltaTime;
+                    this.y += Math.sin(this.wanderAngle) * this.speed * 0.5 * deltaTime;
+                }
+
+                // Keep in bounds
+                this.x = Math.max(this.radius, Math.min(CONFIG.CANVAS_WIDTH - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(CONFIG.CANVAS_HEIGHT - this.radius, this.y));
+            }
+
+            distanceTo(x, y) {
+                return Math.sqrt((this.x - x) ** 2 + (this.y - y) ** 2);
+            }
+
+            takeDamage(amount) {
+                this.health -= amount;
+                if (this.health <= 0) {
+                    this.alive = false;
+                    return true;
+                }
+                return false;
+            }
+
+            draw(ctx) {
+                if (!this.alive) return;
+
+                // Draw civilian body
+                ctx.fillStyle = this.rescued ? '#4ecca3' : (this.panicTimer > 0 ? '#ffcc00' : '#3498db');
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw outline
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw indicator
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 10px Courier New';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.rescued ? '!' : '?', this.x, this.y);
+
+                // Draw health bar if damaged
+                if (this.health < this.maxHealth && !this.rescued) {
+                    const barWidth = this.radius * 2;
+                    const barHeight = 4;
+                    const healthPercent = this.health / this.maxHealth;
+
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(this.x - barWidth / 2, this.y - this.radius - 8, barWidth, barHeight);
+                    ctx.fillStyle = '#3498db';
+                    ctx.fillRect(this.x - barWidth / 2, this.y - this.radius - 8, barWidth * healthPercent, barHeight);
+                }
+            }
+        }
+
+        // Spawn civilians during day
+        function spawnCivilians(count = 2) {
+            const civilians = [];
+            for (let i = 0; i < count; i++) {
+                let x, y;
+                do {
+                    x = 50 + Math.random() * (CONFIG.CANVAS_WIDTH - 100);
+                    y = 50 + Math.random() * (CONFIG.CANVAS_HEIGHT - 100);
+                } while (x > 300 && x < 500 && y > 150 && y < 350); // Avoid base area
+                civilians.push(new Civilian(x, y));
+            }
+            return civilians;
+        }
+
+        // Pickup types configuration
+        const PickupType = {
+            WOOD: {
+                name: 'Wood',
+                resource: 'wood',
+                amount: 5,
+                color: '#8B4513',
+                icon: '🪵'
+            },
+            METAL: {
+                name: 'Metal',
+                resource: 'metal',
+                amount: 3,
+                color: '#71797E',
+                icon: '⚙'
+            },
+            AMMO: {
+                name: 'Ammo',
+                resource: 'ammo',
+                amount: 10,
+                color: '#f1c40f',
+                icon: '🔫'
+            },
+            MEDKIT: {
+                name: 'Medkit',
+                resource: 'health',
+                amount: 25,
+                color: '#e74c3c',
+                icon: '+'
+            }
+        };
+
+        // Pickup class
+        class Pickup {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.radius = 12;
+                this.alive = true;
+                this.bobOffset = Math.random() * Math.PI * 2;
+            }
+
+            update(deltaTime) {
+                this.bobOffset += deltaTime * 3;
+            }
+
+            draw(ctx) {
+                if (!this.alive) return;
+
+                const bobY = Math.sin(this.bobOffset) * 3;
+
+                // Draw pickup background
+                ctx.fillStyle = this.type.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y + bobY, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw outline
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw icon
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 10px Courier New';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.type.icon, this.x, this.y + bobY);
+            }
+
+            distanceTo(x, y) {
+                return Math.sqrt((this.x - x) ** 2 + (this.y - y) ** 2);
+            }
+        }
+
+        // Spawn pickups for day phase
+        function spawnPickups(count = 5) {
+            const pickups = [];
+            const types = [PickupType.WOOD, PickupType.METAL, PickupType.AMMO, PickupType.MEDKIT];
+            const weights = [0.35, 0.25, 0.25, 0.15]; // Wood more common, medkits rare
+
+            for (let i = 0; i < count; i++) {
+                // Weighted random type selection
+                let rand = Math.random();
+                let type = types[0];
+                let cumulative = 0;
+                for (let j = 0; j < types.length; j++) {
+                    cumulative += weights[j];
+                    if (rand < cumulative) {
+                        type = types[j];
+                        break;
+                    }
+                }
+
+                // Random position avoiding base area (350-450, 200-300)
+                let x, y;
+                do {
+                    x = 30 + Math.random() * (CONFIG.CANVAS_WIDTH - 60);
+                    y = 30 + Math.random() * (CONFIG.CANVAS_HEIGHT - 60);
+                } while (x > 320 && x < 480 && y > 170 && y < 330);
+
+                pickups.push(new Pickup(x, y, type));
+            }
+
+            return pickups;
+        }
+
+        // Building types configuration
+        const BuildingType = {
+            BARRICADE: {
+                name: 'Barricade',
+                key: '1',
+                cost: { wood: 5 },
+                maxHealth: 50,
+                width: 40,
+                height: 10,
+                color: '#8B4513',
+                slowFactor: 0.5
+            },
+            WALL: {
+                name: 'Wall',
+                key: '2',
+                cost: { wood: 10, metal: 5 },
+                maxHealth: 200,
+                width: 50,
+                height: 15,
+                color: '#555',
+                blocksMovement: true
+            },
+            TURRET: {
+                name: 'Turret',
+                key: '3',
+                cost: { metal: 15 },
+                maxHealth: 100,
+                width: 30,
+                height: 30,
+                color: '#2c3e50',
+                attackRange: 150,
+                attackRate: 0.5,
+                damage: 8
+            },
+            SPIKE_TRAP: {
+                name: 'Spike Trap',
+                key: '4',
+                cost: { wood: 8, metal: 3 },
+                maxHealth: 30,
+                width: 30,
+                height: 30,
+                color: '#444',
+                damage: 15,
+                cooldown: 1
+            }
+        };
+
+        // Building class
+        class Building {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.health = type.maxHealth;
+                this.maxHealth = type.maxHealth;
+                this.width = type.width;
+                this.height = type.height;
+                this.alive = true;
+                this.attackCooldown = 0;
+            }
+
+            update(deltaTime, zombies, projectiles) {
+                if (!this.alive) return;
+
+                if (this.attackCooldown > 0) {
+                    this.attackCooldown -= deltaTime;
+                }
+
+                // Turret auto-attack logic
+                if (this.type === BuildingType.TURRET && this.attackCooldown <= 0) {
+                    let nearestZombie = null;
+                    let nearestDist = this.type.attackRange;
+
+                    for (const zombie of zombies) {
+                        if (!zombie.alive) continue;
+                        const dist = this.distanceTo(zombie.x, zombie.y);
+                        if (dist < nearestDist) {
+                            nearestDist = dist;
+                            nearestZombie = zombie;
+                        }
+                    }
+
+                    if (nearestZombie) {
+                        const angle = Math.atan2(nearestZombie.y - this.y, nearestZombie.x - this.x);
+                        projectiles.push(new Projectile(this.x, this.y, angle, 300));
+                        this.attackCooldown = this.type.attackRate;
+                    }
+                }
+            }
+
+            takeDamage(amount) {
+                this.health -= amount;
+                if (this.health <= 0) {
+                    this.alive = false;
+                    return true;
+                }
+                return false;
+            }
+
+            distanceTo(x, y) {
+                return Math.sqrt((this.x - x) ** 2 + (this.y - y) ** 2);
+            }
+
+            containsPoint(px, py) {
+                return px >= this.x - this.width / 2 &&
+                       px <= this.x + this.width / 2 &&
+                       py >= this.y - this.height / 2 &&
+                       py <= this.y + this.height / 2;
+            }
+
+            intersectsCircle(cx, cy, radius) {
+                const closestX = Math.max(this.x - this.width / 2, Math.min(cx, this.x + this.width / 2));
+                const closestY = Math.max(this.y - this.height / 2, Math.min(cy, this.y + this.height / 2));
+                const distX = cx - closestX;
+                const distY = cy - closestY;
+                return (distX * distX + distY * distY) < (radius * radius);
+            }
+
+            draw(ctx) {
+                if (!this.alive) return;
+
+                // Draw building body
+                ctx.fillStyle = this.type.color;
+                ctx.fillRect(
+                    this.x - this.width / 2,
+                    this.y - this.height / 2,
+                    this.width,
+                    this.height
+                );
+
+                // Draw outline
+                ctx.strokeStyle = '#222';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(
+                    this.x - this.width / 2,
+                    this.y - this.height / 2,
+                    this.width,
+                    this.height
+                );
+
+                // Draw turret barrel if turret
+                if (this.type === BuildingType.TURRET) {
+                    ctx.fillStyle = '#1a1a2e';
+                    ctx.fillRect(this.x - 3, this.y - 15, 6, 15);
+                }
+
+                // Draw health bar if damaged
+                if (this.health < this.maxHealth) {
+                    const barWidth = this.width;
+                    const barHeight = 4;
+                    const healthPercent = this.health / this.maxHealth;
+
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(this.x - barWidth / 2, this.y - this.height / 2 - 8, barWidth, barHeight);
+                    ctx.fillStyle = healthPercent > 0.5 ? '#2ecc71' : healthPercent > 0.25 ? '#f1c40f' : '#e74c3c';
+                    ctx.fillRect(this.x - barWidth / 2, this.y - this.height / 2 - 8, barWidth * healthPercent, barHeight);
+                }
+
+                // Draw spike trap spikes
+                if (this.type === BuildingType.SPIKE_TRAP) {
+                    ctx.fillStyle = '#888';
+                    for (let i = 0; i < 4; i++) {
+                        for (let j = 0; j < 4; j++) {
+                            const sx = this.x - 10 + i * 7;
+                            const sy = this.y - 10 + j * 7;
+                            ctx.beginPath();
+                            ctx.moveTo(sx, sy + 5);
+                            ctx.lineTo(sx + 3, sy);
+                            ctx.lineTo(sx + 6, sy + 5);
+                            ctx.fill();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Spawn zombies based on wave number
+        function spawnWave(waveNumber) {
+            const zombies = [];
+            const spawnEdges = ['top', 'bottom', 'left', 'right'];
+
+            // Calculate zombie counts based on wave
+            const walkerCount = 3 + waveNumber * 2;
+            const runnerCount = Math.max(0, Math.floor((waveNumber - 1) * 1.5));
+            const bruteCount = Math.max(0, Math.floor((waveNumber - 2) / 2));
+            const spitterCount = Math.max(0, Math.floor((waveNumber - 3) / 2));
+
+            // Helper to get spawn position on map edge
+            function getSpawnPosition(edge) {
+                const margin = 20;
+                switch (edge) {
+                    case 'top':
+                        return { x: Math.random() * CONFIG.CANVAS_WIDTH, y: margin };
+                    case 'bottom':
+                        return { x: Math.random() * CONFIG.CANVAS_WIDTH, y: CONFIG.CANVAS_HEIGHT - margin };
+                    case 'left':
+                        return { x: margin, y: Math.random() * CONFIG.CANVAS_HEIGHT };
+                    case 'right':
+                        return { x: CONFIG.CANVAS_WIDTH - margin, y: Math.random() * CONFIG.CANVAS_HEIGHT };
+                }
+            }
+
+            // Spawn walkers
+            for (let i = 0; i < walkerCount; i++) {
+                const edge = spawnEdges[Math.floor(Math.random() * spawnEdges.length)];
+                const pos = getSpawnPosition(edge);
+                zombies.push(new Zombie(pos.x, pos.y, ZombieType.WALKER));
+            }
+
+            // Spawn runners
+            for (let i = 0; i < runnerCount; i++) {
+                const edge = spawnEdges[Math.floor(Math.random() * spawnEdges.length)];
+                const pos = getSpawnPosition(edge);
+                zombies.push(new Zombie(pos.x, pos.y, ZombieType.RUNNER));
+            }
+
+            // Spawn brutes
+            for (let i = 0; i < bruteCount; i++) {
+                const edge = spawnEdges[Math.floor(Math.random() * spawnEdges.length)];
+                const pos = getSpawnPosition(edge);
+                zombies.push(new Zombie(pos.x, pos.y, ZombieType.BRUTE));
+            }
+
+            // Spawn spitters
+            for (let i = 0; i < spitterCount; i++) {
+                const edge = spawnEdges[Math.floor(Math.random() * spawnEdges.length)];
+                const pos = getSpawnPosition(edge);
+                zombies.push(new Zombie(pos.x, pos.y, ZombieType.SPITTER));
+            }
+
+            return zombies;
+        }
+
+        // Game instance
+        const game = {
+            state: GameState.MENU,
+            phase: Phase.DAY,
+            day: 1,
+            wave: 1,
+            score: 0,
+            timer: CONFIG.DAY_DURATION,
+
+            // Resources
+            resources: {
+                health: 100,
+                ammo: 30,
+                wood: 0,
+                metal: 0
+            },
+
+            // Entities
+            player: null,
+            zombies: [],
+            civilians: [],
+            buildings: [],
+            projectiles: [],
+            pickups: [],
+
+            // Input state
+            keys: {},
+            mouse: { x: 0, y: 0, down: false },
+            mouseWasDown: false, // for single-click detection
+
+            // Build mode
+            buildMode: false,
+            selectedBuildType: null,
+            pickupSpawnTimer: 0
+        };
+
+        // DOM Elements
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('overlay');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const muteBtn = document.getElementById('mute-btn');
+
+        // UI Update functions with animation support
+        const prevResources = { health: 100, ammo: 30, wood: 0, metal: 0 };
+
+        function animateResourceChange(elementId, newValue, oldValue) {
+            if (newValue !== oldValue) {
+                const el = document.getElementById(elementId);
+                el.classList.add('changed');
+                setTimeout(() => el.classList.remove('changed'), 200);
+            }
+        }
+
+        // Show wave announcement
+        function showWaveAnnouncement(waveNumber) {
+            const waveAnnounce = document.getElementById('wave-announce');
+            waveAnnounce.textContent = `WAVE ${waveNumber}`;
+            waveAnnounce.classList.remove('show');
+            void waveAnnounce.offsetWidth; // Force reflow
+            waveAnnounce.classList.add('show');
+            setTimeout(() => waveAnnounce.classList.remove('show'), 2000);
+        }
+
+        // Show day announcement
+        function showDayAnnouncement(dayNumber) {
+            const dayAnnounce = document.getElementById('day-transition');
+            dayAnnounce.textContent = `DAY ${dayNumber}`;
+            dayAnnounce.classList.remove('show');
+            void dayAnnounce.offsetWidth; // Force reflow
+            dayAnnounce.classList.add('show');
+            setTimeout(() => dayAnnounce.classList.remove('show'), 2000);
+        }
+
+        // Update resource warnings
+        function updateResourceWarnings() {
+            const healthEl = document.getElementById('health').parentElement;
+            const ammoEl = document.getElementById('ammo').parentElement;
+
+            // Health warnings
+            healthEl.classList.remove('warning', 'critical');
+            if (game.resources.health <= 25) {
+                healthEl.classList.add('critical');
+            } else if (game.resources.health <= 50) {
+                healthEl.classList.add('warning');
+            }
+
+            // Ammo warnings
+            ammoEl.classList.remove('warning', 'critical');
+            if (game.resources.ammo <= 5) {
+                ammoEl.classList.add('critical');
+            } else if (game.resources.ammo <= 15) {
+                ammoEl.classList.add('warning');
+            }
+        }
+
+        // Show/hide rescue prompt
+        function updateRescuePrompt(show) {
+            const prompt = document.getElementById('rescue-prompt');
+            if (show) {
+                prompt.classList.add('show');
+            } else {
+                prompt.classList.remove('show');
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('day-count').textContent = game.day;
+            document.getElementById('wave-count').textContent = game.wave;
+            document.getElementById('score').textContent = game.score;
+
+            // Timer with warning state
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = Math.ceil(game.timer);
+            if (game.timer <= 5 && game.phase !== Phase.TRANSITION) {
+                timerEl.classList.add('warning');
+            } else {
+                timerEl.classList.remove('warning');
+            }
+
+            // Animate resource changes
+            animateResourceChange('health', game.resources.health, prevResources.health);
+            animateResourceChange('ammo', game.resources.ammo, prevResources.ammo);
+            animateResourceChange('wood', game.resources.wood, prevResources.wood);
+            animateResourceChange('metal', game.resources.metal, prevResources.metal);
+
+            document.getElementById('health').textContent = game.resources.health;
+            document.getElementById('ammo').textContent = game.resources.ammo;
+            document.getElementById('wood').textContent = game.resources.wood;
+            document.getElementById('metal').textContent = game.resources.metal;
+            document.getElementById('civilians').textContent = game.civilians.filter(c => c.rescued).length;
+
+            // Update previous values
+            Object.assign(prevResources, game.resources);
+
+            const phaseIndicator = document.getElementById('phase-indicator');
+            if (game.phase === Phase.DAY) {
+                phaseIndicator.textContent = 'DAY';
+                phaseIndicator.className = 'day';
+            } else if (game.phase === Phase.NIGHT) {
+                phaseIndicator.textContent = 'NIGHT';
+                phaseIndicator.className = 'night';
+            } else {
+                phaseIndicator.textContent = 'WARNING';
+                phaseIndicator.className = 'night';
+            }
+
+            // Update resource warnings
+            updateResourceWarnings();
+        }
+
+        // Canvas rendering
+        function render() {
+            // Apply screen shake
+            ctx.save();
+            ctx.translate(screenShake.offsetX, screenShake.offsetY);
+
+            // Clear canvas with phase-appropriate background
+            ctx.fillStyle = game.phase === Phase.DAY ? '#4a7c59' : '#1a1a2e';
+            ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+
+            // Draw grid (placeholder for map)
+            ctx.strokeStyle = game.phase === Phase.DAY ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < CONFIG.CANVAS_WIDTH; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, CONFIG.CANVAS_HEIGHT);
+                ctx.stroke();
+            }
+            for (let y = 0; y < CONFIG.CANVAS_HEIGHT; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(CONFIG.CANVAS_WIDTH, y);
+                ctx.stroke();
+            }
+
+            // Draw base area
+            ctx.fillStyle = 'rgba(78, 204, 163, 0.2)';
+            ctx.fillRect(350, 200, 100, 100);
+            ctx.strokeStyle = '#4ecca3';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(350, 200, 100, 100);
+            ctx.fillStyle = '#4ecca3';
+            ctx.font = '12px Courier New';
+            ctx.textAlign = 'center';
+            ctx.fillText('BASE', 400, 255);
+
+            // Draw pickups
+            for (const pickup of game.pickups) {
+                pickup.draw(ctx);
+            }
+
+            // Draw buildings
+            for (const building of game.buildings) {
+                building.draw(ctx);
+            }
+
+            // Draw projectiles
+            for (const projectile of game.projectiles) {
+                projectile.draw(ctx);
+            }
+
+            // Draw civilians
+            for (const civilian of game.civilians) {
+                civilian.draw(ctx);
+            }
+
+            // Draw zombies
+            for (const zombie of game.zombies) {
+                zombie.draw(ctx);
+            }
+
+            // Draw player
+            if (game.player && game.state === GameState.PLAYING) {
+                game.player.draw(ctx);
+            }
+
+            // Draw "Press Start" overlay when in menu
+            if (game.state === GameState.MENU) {
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+            }
+
+            // Draw crosshair at mouse position when playing
+            if (game.state === GameState.PLAYING) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 1;
+                const crosshairSize = 10;
+                ctx.beginPath();
+                ctx.moveTo(game.mouse.x - crosshairSize, game.mouse.y);
+                ctx.lineTo(game.mouse.x + crosshairSize, game.mouse.y);
+                ctx.moveTo(game.mouse.x, game.mouse.y - crosshairSize);
+                ctx.lineTo(game.mouse.x, game.mouse.y + crosshairSize);
+                ctx.stroke();
+            }
+
+            // Draw build preview when in build mode
+            if (game.buildMode && game.selectedBuildType) {
+                const type = game.selectedBuildType;
+                const canAfford = canAffordBuilding(type);
+
+                // Draw preview at mouse position
+                ctx.globalAlpha = 0.5;
+                ctx.fillStyle = canAfford ? type.color : '#e74c3c';
+                ctx.fillRect(
+                    game.mouse.x - type.width / 2,
+                    game.mouse.y - type.height / 2,
+                    type.width,
+                    type.height
+                );
+                ctx.strokeStyle = canAfford ? '#fff' : '#ff0000';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(
+                    game.mouse.x - type.width / 2,
+                    game.mouse.y - type.height / 2,
+                    type.width,
+                    type.height
+                );
+                ctx.globalAlpha = 1.0;
+
+                // Draw build info
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 12px Courier New';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${type.name} - Click to place`, game.mouse.x, game.mouse.y - type.height / 2 - 10);
+
+                // Draw cost
+                const costText = Object.entries(type.cost).map(([res, amt]) => `${res}: ${amt}`).join(', ');
+                ctx.fillStyle = canAfford ? '#4ecca3' : '#e74c3c';
+                ctx.font = '10px Courier New';
+                ctx.fillText(costText, game.mouse.x, game.mouse.y + type.height / 2 + 15);
+            }
+
+            // Draw particles (on top of everything)
+            particles.draw(ctx);
+
+            // Restore canvas from screen shake
+            ctx.restore();
+        }
+
+        // Check if player can afford a building
+        function canAffordBuilding(type) {
+            for (const [resource, amount] of Object.entries(type.cost)) {
+                if ((game.resources[resource] || 0) < amount) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Place a building at the specified position
+        function placeBuilding(x, y, type) {
+            if (!canAffordBuilding(type)) return false;
+
+            // Deduct resources
+            for (const [resource, amount] of Object.entries(type.cost)) {
+                game.resources[resource] -= amount;
+            }
+
+            // Create building
+            game.buildings.push(new Building(x, y, type));
+            game.score += 10;
+            // Sound and particles
+            audio.playBuild();
+            particles.emit(x, y, type.color, 10, 80);
+            return true;
+        }
+
+        // Game loop
+        let lastTime = 0;
+        function gameLoop(timestamp) {
+            const deltaTime = Math.min((timestamp - lastTime) / 1000, 0.1); // Cap delta to prevent huge jumps
+            lastTime = timestamp;
+
+            if (game.state === GameState.PLAYING) {
+                // Update timer
+                game.timer -= deltaTime;
+                if (game.timer <= 0) {
+                    // Phase transition logic
+                    if (game.phase === Phase.DAY) {
+                        game.phase = Phase.TRANSITION;
+                        game.timer = CONFIG.TRANSITION_DURATION;
+                    } else if (game.phase === Phase.TRANSITION) {
+                        game.phase = Phase.NIGHT;
+                        game.timer = CONFIG.NIGHT_DURATION;
+                        // Spawn zombies when night begins
+                        game.zombies = spawnWave(game.wave);
+                        audio.playWaveStart();
+                        screenShake.shake(5, 0.3);
+                        showWaveAnnouncement(game.wave);
+                    } else {
+                        // Night ended - check if all zombies are dead
+                        game.phase = Phase.DAY;
+                        game.timer = CONFIG.DAY_DURATION;
+                        game.day++;
+                        game.wave++;
+                        // Clear remaining zombies (they retreat at dawn)
+                        game.zombies = [];
+                        // Spawn new pickups for the day
+                        game.pickups = spawnPickups(5 + game.day);
+                        // Spawn new civilians
+                        const newCivilians = spawnCivilians(1 + Math.floor(game.day / 2));
+                        game.civilians.push(...newCivilians);
+                        audio.playDayStart();
+                        showDayAnnouncement(game.day);
+                    }
+                }
+
+                // Spawn pickups periodically during day (every 8 seconds)
+                if (game.phase === Phase.DAY) {
+                    game.pickupSpawnTimer -= deltaTime;
+                    if (game.pickupSpawnTimer <= 0) {
+                        game.pickups.push(...spawnPickups(2));
+                        game.pickupSpawnTimer = 8;
+                    }
+                }
+
+                // Update player
+                if (game.player) {
+                    game.player.update(deltaTime, game.keys, game.mouse);
+
+                    // Handle shooting (on mouse click, with ammo check) - not in build mode
+                    if (!game.buildMode && game.mouse.down && !game.mouseWasDown && game.player.canShoot() && game.resources.ammo > 0) {
+                        // Create projectile from player position
+                        const muzzleX = game.player.x + Math.cos(game.player.angle) * 20;
+                        const muzzleY = game.player.y + Math.sin(game.player.angle) * 20;
+                        const projectile = new Projectile(muzzleX, muzzleY, game.player.angle);
+                        game.projectiles.push(projectile);
+                        game.player.shoot();
+                        game.resources.ammo--;
+                        // Sound and muzzle flash
+                        audio.playShoot();
+                        particles.emitDirectional(muzzleX, muzzleY, game.player.angle, '#f1c40f', 5, 0.3);
+                    }
+                    game.mouseWasDown = game.mouse.down;
+                }
+
+                // Update projectiles
+                for (const projectile of game.projectiles) {
+                    projectile.update(deltaTime);
+                }
+                // Remove dead projectiles
+                game.projectiles = game.projectiles.filter(p => p.alive);
+
+                // Update pickups and check collection
+                for (const pickup of game.pickups) {
+                    pickup.update(deltaTime);
+                    if (game.player && pickup.alive) {
+                        const dist = pickup.distanceTo(game.player.x, game.player.y);
+                        if (dist < pickup.radius + game.player.radius) {
+                            pickup.alive = false;
+                            // Add resource (cap health at 100)
+                            if (pickup.type.resource === 'health') {
+                                game.resources.health = Math.min(100, game.resources.health + pickup.type.amount);
+                            } else {
+                                game.resources[pickup.type.resource] += pickup.type.amount;
+                            }
+                            game.score += 5;
+                            // Sound and particles
+                            audio.playPickup();
+                            particles.emit(pickup.x, pickup.y, pickup.type.color, 8, 80);
+                        }
+                    }
+                }
+                // Remove collected pickups
+                game.pickups = game.pickups.filter(p => p.alive);
+
+                // Update buildings
+                for (const building of game.buildings) {
+                    building.update(deltaTime, game.zombies, game.projectiles);
+                }
+                // Remove destroyed buildings
+                game.buildings = game.buildings.filter(b => b.alive);
+
+                // Update civilians
+                const baseCenter = { x: 400, y: 250 };
+                let nearCivilian = false;
+                for (const civilian of game.civilians) {
+                    civilian.update(deltaTime, game.player, game.zombies, baseCenter);
+
+                    // Check if player is near an unrescued civilian
+                    if (game.player && civilian.alive && !civilian.rescued) {
+                        const dist = civilian.distanceTo(game.player.x, game.player.y);
+                        if (dist < civilian.radius + game.player.radius + 20) {
+                            nearCivilian = true;
+                        }
+                    }
+                }
+                updateRescuePrompt(nearCivilian);
+
+                // Update zombies
+                for (const zombie of game.zombies) {
+                    zombie.update(deltaTime, game.player, game.civilians, baseCenter);
+
+                    // Check collision with player
+                    if (game.player) {
+                        const distToPlayer = zombie.distanceTo(game.player.x, game.player.y);
+                        if (distToPlayer < zombie.radius + game.player.radius) {
+                            if (zombie.canAttack()) {
+                                game.resources.health -= zombie.damage;
+                                zombie.attack();
+                                // Damage feedback
+                                audio.playPlayerHit();
+                                screenShake.shake(8, 0.2);
+                                particles.emit(game.player.x, game.player.y, '#e74c3c', 12, 100);
+
+                                // Check for game over
+                                if (game.resources.health <= 0) {
+                                    game.resources.health = 0;
+                                    game.state = GameState.GAME_OVER;
+                                    audio.playGameOver();
+                                    screenShake.shake(15, 0.5);
+                                    overlay.classList.remove('hidden');
+                                    document.querySelector('#overlay h1').textContent = 'GAME OVER';
+                                    document.querySelector('#overlay h2').textContent = `You survived ${game.day} days | Score: ${game.score}`;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Check projectile-zombie collisions
+                for (const projectile of game.projectiles) {
+                    if (!projectile.alive) continue;
+                    for (const zombie of game.zombies) {
+                        if (!zombie.alive) continue;
+                        const dist = Math.sqrt(
+                            (projectile.x - zombie.x) ** 2 +
+                            (projectile.y - zombie.y) ** 2
+                        );
+                        if (dist < projectile.radius + zombie.radius) {
+                            projectile.alive = false;
+                            const died = zombie.takeDamage(projectile.damage);
+                            if (died) {
+                                game.score += zombie.type.score;
+                                audio.playZombieDeath();
+                                particles.emit(zombie.x, zombie.y, zombie.color, 15, 120);
+                            } else {
+                                audio.playZombieHit();
+                                particles.emit(zombie.x, zombie.y, '#fff', 5, 60);
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                // Check zombie-building collisions
+                for (const zombie of game.zombies) {
+                    if (!zombie.alive) continue;
+                    for (const building of game.buildings) {
+                        if (!building.alive) continue;
+                        if (building.intersectsCircle(zombie.x, zombie.y, zombie.radius)) {
+                            // Spike trap damages zombies
+                            if (building.type === BuildingType.SPIKE_TRAP && building.attackCooldown <= 0) {
+                                zombie.takeDamage(building.type.damage);
+                                building.attackCooldown = building.type.cooldown;
+                            }
+                            // Zombie attacks building
+                            if (zombie.canAttack()) {
+                                building.takeDamage(zombie.damage);
+                                zombie.attack();
+                            }
+                        }
+                    }
+                }
+
+                // Check zombie-civilian collisions
+                for (const zombie of game.zombies) {
+                    if (!zombie.alive) continue;
+                    for (const civilian of game.civilians) {
+                        if (!civilian.alive || civilian.rescued) continue;
+                        const dist = zombie.distanceTo(civilian.x, civilian.y);
+                        if (dist < zombie.radius + civilian.radius) {
+                            if (zombie.canAttack()) {
+                                const died = civilian.takeDamage(zombie.damage);
+                                zombie.attack();
+                                if (died) {
+                                    // Civilian becomes a zombie!
+                                    audio.playCivilianDeath();
+                                    particles.emit(civilian.x, civilian.y, '#e74c3c', 15, 100);
+                                    game.zombies.push(new Zombie(civilian.x, civilian.y, ZombieType.WALKER));
+                                    screenShake.shake(3, 0.15);
+                                }
+                            }
+                        }
+                    }
+                }
+                // Remove dead civilians
+                game.civilians = game.civilians.filter(c => c.alive);
+
+                // Remove dead zombies
+                game.zombies = game.zombies.filter(z => z.alive);
+
+                updateUI();
+            }
+
+            // Update effects (even when paused for visual continuity)
+            particles.update(deltaTime);
+            screenShake.update(deltaTime);
+
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize/reset game
+        function initGame() {
+            game.state = GameState.PLAYING;
+            game.phase = Phase.DAY;
+            game.day = 1;
+            game.wave = 1;
+            game.score = 0;
+            game.timer = CONFIG.DAY_DURATION;
+            game.resources = {
+                health: 100,
+                ammo: 30,
+                wood: 0,
+                metal: 0
+            };
+            game.player = new Player(400, 250);
+            game.zombies = [];
+            game.civilians = spawnCivilians(2); // Initial civilians to rescue
+            game.buildings = [];
+            game.projectiles = [];
+            game.pickups = spawnPickups(6); // Initial pickups
+            game.mouseWasDown = false;
+            game.buildMode = false;
+            game.selectedBuildType = null;
+            game.pickupSpawnTimer = 8;
+        }
+
+        // Event Listeners
+        startBtn.addEventListener('click', () => {
+            // Initialize audio on first user interaction (required by browsers)
+            audio.init();
+            audio.resume();
+            initGame();
+            overlay.classList.add('hidden');
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            if (game.state === GameState.PLAYING) {
+                game.state = GameState.PAUSED;
+                pauseBtn.textContent = 'RESUME [P]';
+                pauseBtn.classList.add('active');
+            } else if (game.state === GameState.PAUSED) {
+                game.state = GameState.PLAYING;
+                pauseBtn.textContent = 'PAUSE [P]';
+                pauseBtn.classList.remove('active');
+            }
+        });
+
+        muteBtn.addEventListener('click', () => {
+            const enabled = audio.toggle();
+            muteBtn.innerHTML = enabled ? '&#x1F50A;' : '&#x1F507;';
+            muteBtn.classList.toggle('muted', !enabled);
+        });
+
+        // Keyboard input
+        document.addEventListener('keydown', (e) => {
+            game.keys[e.key.toLowerCase()] = true;
+
+            if (e.key.toLowerCase() === 'p') {
+                pauseBtn.click();
+            }
+
+            // Mute toggle
+            if (e.key.toLowerCase() === 'm') {
+                muteBtn.click();
+            }
+
+            // Rescue key (E)
+            if (e.key.toLowerCase() === 'e' && game.state === GameState.PLAYING && game.player) {
+                for (const civilian of game.civilians) {
+                    if (civilian.alive && !civilian.rescued) {
+                        const dist = civilian.distanceTo(game.player.x, game.player.y);
+                        if (dist < civilian.radius + game.player.radius + 20) {
+                            civilian.rescued = true;
+                            game.score += 50;
+                            // Bonus resources for rescue
+                            game.resources.ammo += 5;
+                            game.resources.wood += 3;
+                            audio.playRescue();
+                            particles.emit(civilian.x, civilian.y, '#4ecca3', 15, 100);
+                            break; // Only rescue one at a time
+                        }
+                    }
+                }
+            }
+
+            // Build mode toggle
+            if (e.key.toLowerCase() === 'b' && game.state === GameState.PLAYING) {
+                game.buildMode = !game.buildMode;
+                if (!game.buildMode) {
+                    game.selectedBuildType = null;
+                }
+                document.getElementById('build-btn').classList.toggle('active', game.buildMode);
+            }
+
+            // Quick build keys (1-4)
+            if (game.state === GameState.PLAYING) {
+                if (e.key === '1') {
+                    game.buildMode = true;
+                    game.selectedBuildType = BuildingType.BARRICADE;
+                    document.getElementById('build-btn').classList.add('active');
+                } else if (e.key === '2') {
+                    game.buildMode = true;
+                    game.selectedBuildType = BuildingType.WALL;
+                    document.getElementById('build-btn').classList.add('active');
+                } else if (e.key === '3') {
+                    game.buildMode = true;
+                    game.selectedBuildType = BuildingType.TURRET;
+                    document.getElementById('build-btn').classList.add('active');
+                } else if (e.key === '4') {
+                    game.buildMode = true;
+                    game.selectedBuildType = BuildingType.SPIKE_TRAP;
+                    document.getElementById('build-btn').classList.add('active');
+                }
+
+                // Cancel build mode with Escape
+                if (e.key === 'Escape' && game.buildMode) {
+                    game.buildMode = false;
+                    game.selectedBuildType = null;
+                    document.getElementById('build-btn').classList.remove('active');
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            game.keys[e.key.toLowerCase()] = false;
+        });
+
+        // Mouse input
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            game.mouse.x = e.clientX - rect.left;
+            game.mouse.y = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            game.mouse.down = true;
+
+            // Handle build mode placement
+            if (game.buildMode && game.selectedBuildType && game.state === GameState.PLAYING) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                if (placeBuilding(x, y, game.selectedBuildType)) {
+                    // Keep in build mode for repeated placement
+                } else {
+                    // Flash red or show error - can't afford
+                }
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            game.mouse.down = false;
+        });
+
+        // Initialize
+        updateUI();
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
