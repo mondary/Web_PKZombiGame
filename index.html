@@ -432,6 +432,72 @@
         #rescue-prompt.show {
             opacity: 1;
         }
+
+        /* Build Menu */
+        #build-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(26, 26, 46, 0.95);
+            border: 3px solid #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            z-index: 15;
+            width: 400px;
+            text-align: center;
+        }
+
+        #build-menu.hidden {
+            display: none;
+        }
+
+        #build-menu h3 {
+            color: #e94560;
+            margin-bottom: 15px;
+        }
+
+        .build-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .build-option {
+            background: #1a1a2e;
+            border: 2px solid #4ecca3;
+            border-radius: 4px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .build-option:hover {
+            background: #4ecca3;
+            color: #1a1a2e;
+        }
+
+        .build-option.selected {
+            background: #4ecca3;
+            color: #1a1a2e;
+            border-color: #e94560;
+        }
+
+        .build-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .build-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .build-cost {
+            font-size: 12px;
+            color: #4ecca3;
+        }
     </style>
 </head>
 <body>
@@ -488,8 +554,8 @@
         <!-- Control Bar -->
         <div id="control-bar">
             <div class="buttons">
-                <button class="btn" id="build-btn" title="Place defensive structures (Barricades, Walls, Turrets, Spike Traps)">BUILD [B]</button>
-                <button class="btn" id="inventory-btn" title="Manage items (Coming Soon)">INVENTORY [I]</button>
+                <button class="btn" id="build-btn" title="Toggle build mode to place defensive structures (Barricades, Walls, Turrets, Spike Traps, Machine Guns)">BUILD [B]</button>
+                <button class="btn" id="inventory-btn" title="Open inventory to manage collected items">INVENTORY [I]</button>
                 <button class="btn" id="settings-btn" title="Configure game settings and controls">SETTINGS</button>
             </div>
             <div class="buttons">
@@ -507,6 +573,61 @@
         <!-- Rescue Prompt -->
         <div id="rescue-prompt">Press [E] to rescue!</div>
 
+        <!-- Build Menu -->
+        <div id="build-menu" class="hidden">
+            <div class="build-menu-content">
+                <h3>SELECT CONSTRUCTION</h3>
+                <div class="build-options">
+                    <div class="build-option" data-type="BARRICADE">
+                        <div class="build-icon">🪵</div>
+                        <div class="build-name">Barricade</div>
+                        <div class="build-cost">WOOD: 5</div>
+                    </div>
+                    <div class="build-option" data-type="WALL">
+                        <div class="build-icon">🧱</div>
+                        <div class="build-name">Wall</div>
+                        <div class="build-cost">WOOD: 10, METAL: 5</div>
+                    </div>
+                    <div class="build-option" data-type="TURRET">
+                        <div class="build-icon">🔫</div>
+                        <div class="build-name">Turret</div>
+                        <div class="build-cost">METAL: 15</div>
+                    </div>
+                    <div class="build-option" data-type="SPIKE_TRAP">
+                        <div class="build-icon">🔺</div>
+                        <div class="build-name">Spike Trap</div>
+                        <div class="build-cost">WOOD: 8, METAL: 3</div>
+                    </div>
+                    <div class="build-option" data-type="MACHINE_GUN">
+                        <div class="build-icon">🔫🔥</div>
+                        <div class="build-name">Machine Gun</div>
+                        <div class="build-cost">WOOD: 15, METAL: 20</div>
+                    </div>
+                    <div class="build-option" data-type="HEAL_STATION">
+                        <div class="build-icon">✚</div>
+                        <div class="build-name">Heal Station</div>
+                        <div class="build-cost">WOOD: 20, METAL: 10</div>
+                    </div>
+                    <div class="build-option" data-type="AMMO_BOX">
+                        <div class="build-icon">📦</div>
+                        <div class="build-name">Ammo Box</div>
+                        <div class="build-cost">WOOD: 15, METAL: 5</div>
+                    </div>
+                    <div class="build-option" data-type="SMOKE_BOMB">
+                        <div class="build-icon">💨</div>
+                        <div class="build-name">Smoke Bomb</div>
+                        <div class="build-cost">WOOD: 5, METAL: 8</div>
+                    </div>
+                    <div class="build-option" data-type="LIGHT_TOWER">
+                        <div class="build-icon">💡</div>
+                        <div class="build-name">Light Tower</div>
+                        <div class="build-cost">WOOD: 25, METAL: 15</div>
+                    </div>
+                </div>
+                <button class="btn" id="close-build-menu">CLOSE [ESC]</button>
+            </div>
+        </div>
+
         <!-- Start/Game Over Overlay -->
         <div id="overlay">
             <h1>ZOMBIHORDE</h1>
@@ -518,7 +639,6 @@
                 <p><strong>E</strong> - Interact / Rescue Civilians</p>
                 <p><strong>1-4</strong> - Quick Build (Barricade/Wall/Turret/Spike Trap)</p>
                 <p><strong>B</strong> - Toggle Build Mode</p>
-                <p><strong>I</strong> - Inventory (Coming Soon)</p>
                 <p><strong>P</strong> - Pause</p>
             </div>
             <div class="config-section">
@@ -584,6 +704,10 @@
                     <div class="config-item">
                         <label for="build4">Build Slot 4:</label>
                         <input type="text" id="build4" class="key-input" readonly>
+                    </div>
+                    <div class="config-item">
+                        <label for="build5">Build Slot 5:</label>
+                        <input type="text" id="build5" class="key-input" readonly>
                     </div>
                     <div class="config-item">
                         <label for="escape">Cancel/Escape:</label>
@@ -886,10 +1010,12 @@
             mute: 'm',
             rescue: 'e',
             build: 'b',
+            inventory: 'i',
             build1: '1',
             build2: '2',
             build3: '3',
             build4: '4',
+            build5: '5',
             escape: 'escape'
         };
 
@@ -928,12 +1054,28 @@
                 this.y = y;
                 this.radius = 15;
                 this.speed = 150; // pixels per second
+                this.baseSpeed = 150; // Store base speed for temporary boosts
                 this.angle = 0; // facing direction in radians
                 this.shootCooldown = 0;
                 this.shootRate = 0.2; // seconds between shots
+
+                // Temporary effects
+                this.speedBoostTimer = 0;
+                this.speedBoostMultiplier = 1.0;
             }
 
             update(deltaTime, keys, mouse) {
+                // Update temporary effects
+                if (this.speedBoostTimer > 0) {
+                    this.speedBoostTimer -= deltaTime;
+                    if (this.speedBoostTimer <= 0) {
+                        this.speedBoostMultiplier = 1.0; // Reset to normal speed
+                    }
+                }
+
+                // Calculate current speed
+                const currentSpeed = this.baseSpeed * this.speedBoostMultiplier;
+
                 // Movement with WASD/Arrow keys
                 let dx = 0;
                 let dy = 0;
@@ -951,8 +1093,8 @@
                 }
 
                 // Apply movement
-                this.x += dx * this.speed * deltaTime;
-                this.y += dy * this.speed * deltaTime;
+                this.x += dx * currentSpeed * deltaTime;
+                this.y += dy * currentSpeed * deltaTime;
 
                 // Keep player in bounds
                 this.x = Math.max(this.radius, Math.min(CONFIG.CANVAS_WIDTH - this.radius, this.x));
@@ -973,6 +1115,39 @@
 
             shoot() {
                 this.shootCooldown = this.shootRate;
+            }
+
+            // Use special item
+            useItem(itemType) {
+                if (itemType === 'speed_boost') {
+                    this.speedBoostMultiplier = 1.5; // 50% speed boost
+                    this.speedBoostTimer = 5; // 5 seconds duration
+                    return true;
+                } else if (itemType === 'grenades') {
+                    // Create explosion effect at mouse position
+                    const explosionX = game.mouse.x;
+                    const explosionY = game.mouse.y;
+
+                    // Damage zombies in radius
+                    for (const zombie of game.zombies) {
+                        const dist = Math.sqrt((zombie.x - explosionX)**2 + (zombie.y - explosionY)**2);
+                        if (dist <= 80) { // 80 pixel radius
+                            zombie.takeDamage(50); // High damage for grenade
+
+                            // Visual effect
+                            particles.emit(zombie.x, zombie.y, '#e67e22', 15, 100);
+
+                            // Screen shake
+                            screenShake.shake(8, 0.3);
+                        }
+                    }
+
+                    // Visual explosion
+                    particles.emit(explosionX, explosionY, '#e67e22', 30, 150);
+                    audio.playNoise(0.3, 0.8);
+                    return true;
+                }
+                return false;
             }
 
             draw(ctx) {
@@ -1000,6 +1175,15 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText('P', this.x, this.y);
+
+                // Draw speed boost indicator if active
+                if (this.speedBoostTimer > 0) {
+                    ctx.strokeStyle = '#3498db';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius + 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
             }
         }
 
@@ -1407,6 +1591,27 @@
                 amount: 25,
                 color: '#e74c3c',
                 icon: '+'
+            },
+            GRENADE: {
+                name: 'Grenade',
+                resource: 'grenades',
+                amount: 1,
+                color: '#e67e22',
+                icon: '💣'
+            },
+            HEALTH_PACK: {
+                name: 'Health Pack',
+                resource: 'health',
+                amount: 50,
+                color: '#27ae60',
+                icon: '✚'
+            },
+            SPEED_BOOST: {
+                name: 'Speed Boost',
+                resource: 'speed_boost',
+                amount: 1,
+                color: '#3498db',
+                icon: '⚡'
             }
         };
 
@@ -1457,8 +1662,8 @@
         // Spawn pickups for day phase
         function spawnPickups(count = 5) {
             const pickups = [];
-            const types = [PickupType.WOOD, PickupType.METAL, PickupType.AMMO, PickupType.MEDKIT];
-            const weights = [0.35, 0.25, 0.25, 0.15]; // Wood more common, medkits rare
+            const types = [PickupType.WOOD, PickupType.METAL, PickupType.AMMO, PickupType.MEDKIT, PickupType.GRENADE, PickupType.HEALTH_PACK, PickupType.SPEED_BOOST];
+            const weights = [0.25, 0.20, 0.20, 0.10, 0.05, 0.10, 0.10]; // Wood more common, special items rarer
 
             for (let i = 0; i < count; i++) {
                 // Weighted random type selection
@@ -1530,6 +1735,66 @@
                 color: '#444',
                 damage: 15,
                 cooldown: 1
+            },
+            MACHINE_GUN: {
+                name: 'Machine Gun',
+                key: '5',
+                cost: { wood: 15, metal: 20 },
+                maxHealth: 120,
+                width: 35,
+                height: 35,
+                color: '#e74c3c',
+                attackRange: 180,
+                attackRate: 0.1, // Faster firing rate
+                damage: 12,
+                projectileSpeed: 500 // Faster bullets
+            },
+            HEAL_STATION: {
+                name: 'Heal Station',
+                key: '6',
+                cost: { wood: 20, metal: 10 },
+                maxHealth: 80,
+                width: 40,
+                height: 40,
+                color: '#27ae60',
+                healRadius: 100,
+                healRate: 0.5, // Health points per second
+                healAmount: 1
+            },
+            AMMO_BOX: {
+                name: 'Ammo Box',
+                key: '7',
+                cost: { wood: 15, metal: 5 },
+                maxHealth: 60,
+                width: 35,
+                height: 35,
+                color: '#f1c40f',
+                ammoSupply: 20,
+                refillRate: 5 // Refill every 5 seconds
+            },
+            SMOKE_BOMB: {
+                name: 'Smoke Bomb',
+                key: '8',
+                cost: { wood: 5, metal: 8 },
+                maxHealth: 20,
+                width: 25,
+                height: 25,
+                color: '#ecf0f1',
+                effectRadius: 80,
+                effectDuration: 3,
+                slowsEnemies: true,
+                slowFactor: 0.3
+            },
+            LIGHT_TOWER: {
+                name: 'Light Tower',
+                key: '9',
+                cost: { wood: 25, metal: 15 },
+                maxHealth: 70,
+                width: 30,
+                height: 50,
+                color: '#f39c12',
+                lightRadius: 150,
+                revealsEnemies: true
             }
         };
 
@@ -1545,9 +1810,13 @@
                 this.height = type.height;
                 this.alive = true;
                 this.attackCooldown = 0;
+                this.healCooldown = 0;
+                this.refillCooldown = 0;
+                this.smokeEffectActive = false;
+                this.smokeEffectTimer = 0;
             }
 
-            update(deltaTime, zombies, projectiles) {
+            update(deltaTime, zombies, projectiles, player) {
                 if (!this.alive) return;
 
                 if (this.attackCooldown > 0) {
@@ -1555,7 +1824,7 @@
                 }
 
                 // Turret auto-attack logic
-                if (this.type === BuildingType.TURRET && this.attackCooldown <= 0) {
+                if ((this.type === BuildingType.TURRET || this.type === BuildingType.MACHINE_GUN) && this.attackCooldown <= 0) {
                     let nearestZombie = null;
                     let nearestDist = this.type.attackRange;
 
@@ -1570,9 +1839,62 @@
 
                     if (nearestZombie) {
                         const angle = Math.atan2(nearestZombie.y - this.y, nearestZombie.x - this.x);
-                        projectiles.push(new Projectile(this.x, this.y, angle, 300));
+                        // Use the projectile speed defined in the building type, default to 300 if not specified
+                        const projSpeed = this.type.projectileSpeed || 300;
+                        projectiles.push(new Projectile(this.x, this.y, angle, projSpeed));
                         this.attackCooldown = this.type.attackRate;
                     }
+                }
+
+                // Heal station logic
+                if (this.type === BuildingType.HEAL_STATION) {
+                    this.healCooldown -= deltaTime;
+                    if (this.healCooldown <= 0 && player) {
+                        const dist = this.distanceTo(player.x, player.y);
+                        if (dist <= this.type.healRadius && game.resources.health < 100) {
+                            game.resources.health = Math.min(100, game.resources.health + this.type.healAmount);
+                            this.healCooldown = 1 / this.type.healRate; // Time between heals
+
+                            // Visual effect
+                            particles.emit(player.x, player.y, '#27ae60', 3, 50);
+                        }
+                    }
+                }
+
+                // Ammo box logic
+                if (this.type === BuildingType.AMMO_BOX) {
+                    this.refillCooldown -= deltaTime;
+                    if (this.refillCooldown <= 0 && player) {
+                        const dist = this.distanceTo(player.x, player.y);
+                        if (dist <= 50) { // Close enough to player
+                            game.resources.ammo = Math.min(999, game.resources.ammo + 5); // Refill some ammo
+                            this.refillCooldown = this.type.refillRate;
+
+                            // Visual effect
+                            particles.emit(this.x, this.y, '#f1c40f', 3, 50);
+                        }
+                    }
+                }
+
+                // Smoke bomb effect
+                if (this.type === BuildingType.SMOKE_BOMB) {
+                    if (this.smokeEffectActive) {
+                        this.smokeEffectTimer -= deltaTime;
+                        if (this.smokeEffectTimer <= 0) {
+                            this.smokeEffectActive = false;
+                        }
+                    }
+                }
+            }
+
+            activate() {
+                // Activate special abilities for certain building types
+                if (this.type === BuildingType.SMOKE_BOMB) {
+                    this.smokeEffectActive = true;
+                    this.smokeEffectTimer = this.type.effectDuration;
+
+                    // Create smoke particles
+                    particles.emit(this.x, this.y, '#ecf0f1', 50, 100);
                 }
             }
 
@@ -1736,6 +2058,13 @@
                 metal: 0
             },
 
+            // Inventory system
+            inventory: {
+                items: [],
+                maxSize: 10,
+                selectedSlot: 0
+            },
+
             // Entities
             player: null,
             zombies: [],
@@ -1826,10 +2155,12 @@
             document.getElementById('mute').value = KEY_BINDINGS.mute.toUpperCase();
             document.getElementById('rescue').value = KEY_BINDINGS.rescue.toUpperCase();
             document.getElementById('build').value = KEY_BINDINGS.build.toUpperCase();
+            document.getElementById('inventory').value = KEY_BINDINGS.inventory.toUpperCase();
             document.getElementById('build1').value = KEY_BINDINGS.build1;
             document.getElementById('build2').value = KEY_BINDINGS.build2;
             document.getElementById('build3').value = KEY_BINDINGS.build3;
             document.getElementById('build4').value = KEY_BINDINGS.build4;
+            document.getElementById('build5').value = KEY_BINDINGS.build5;
             document.getElementById('escape').value = KEY_BINDINGS.escape.toUpperCase();
         }
 
@@ -1844,10 +2175,12 @@
             KEY_BINDINGS.mute = document.getElementById('mute').value.toLowerCase();
             KEY_BINDINGS.rescue = document.getElementById('rescue').value.toLowerCase();
             KEY_BINDINGS.build = document.getElementById('build').value.toLowerCase();
+            KEY_BINDINGS.inventory = document.getElementById('inventory').value.toLowerCase();
             KEY_BINDINGS.build1 = document.getElementById('build1').value.toLowerCase();
             KEY_BINDINGS.build2 = document.getElementById('build2').value.toLowerCase();
             KEY_BINDINGS.build3 = document.getElementById('build3').value.toLowerCase();
             KEY_BINDINGS.build4 = document.getElementById('build4').value.toLowerCase();
+            KEY_BINDINGS.build5 = document.getElementById('build5').value.toLowerCase();
             KEY_BINDINGS.escape = document.getElementById('escape').value.toLowerCase();
             
             saveKeyBindings();
@@ -1857,8 +2190,8 @@
         function setupKeyInputListeners() {
             const keyInputs = [
                 'moveUp', 'moveLeft', 'moveDown', 'moveRight',
-                'pause', 'mute', 'rescue', 'build',
-                'build1', 'build2', 'build3', 'build4', 'escape'
+                'pause', 'mute', 'rescue', 'build', 'inventory',
+                'build1', 'build2', 'build3', 'build4', 'build5', 'escape'
             ];
 
             keyInputs.forEach(inputId => {
@@ -1922,6 +2255,209 @@
             setTimeout(() => dayAnnounce.classList.remove('show'), 2000);
         }
 
+        // Show inventory notification
+        function showInventoryNotification(message) {
+            // Create or update inventory notification element
+            let invNotification = document.getElementById('inv-notification');
+            if (!invNotification) {
+                invNotification = document.createElement('div');
+                invNotification.id = 'inv-notification';
+                invNotification.style.position = 'absolute';
+                invNotification.style.top = '50%';
+                invNotification.style.left = '50%';
+                invNotification.style.transform = 'translate(-50%, -50%)';
+                invNotification.style.backgroundColor = 'rgba(78, 204, 163, 0.9)';
+                invNotification.style.color = '#1a1a2e';
+                invNotification.style.padding = '10px 20px';
+                invNotification.style.borderRadius = '4px';
+                invNotification.style.fontWeight = 'bold';
+                invNotification.style.fontSize = '16px';
+                invNotification.style.zIndex = '100';
+                invNotification.style.opacity = '0';
+                invNotification.style.transition = 'opacity 0.3s ease';
+                document.body.appendChild(invNotification);
+            }
+            
+            invNotification.textContent = message;
+            invNotification.style.opacity = '1';
+            
+            setTimeout(() => {
+                invNotification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(invNotification)) {
+                        document.body.removeChild(invNotification);
+                    }
+                }, 300);
+            }, 2000);
+        }
+
+        // Show inventory modal
+        function showInventoryModal() {
+            // Create or update inventory modal
+            let invModal = document.getElementById('inventory-modal');
+            if (!invModal) {
+                invModal = document.createElement('div');
+                invModal.id = 'inventory-modal';
+                invModal.style.position = 'absolute';
+                invModal.style.top = '0';
+                invModal.style.left = '0';
+                invModal.style.width = '100%';
+                invModal.style.height = '100%';
+                invModal.style.background = 'rgba(0, 0, 0, 0.85)';
+                invModal.style.display = 'flex';
+                invModal.style.justifyContent = 'center';
+                invModal.style.alignItems = 'center';
+                invModal.style.zIndex = '50';
+                invModal.style.flexDirection = 'column';
+                
+                const modalContent = document.createElement('div');
+                modalContent.style.background = '#1a1a2e';
+                modalContent.style.border = '3px solid #0f3460';
+                modalContent.style.borderRadius = '8px';
+                modalContent.style.padding = '20px';
+                modalContent.style.maxWidth = '500px';
+                modalContent.style.width = '80%';
+                
+                const title = document.createElement('h2');
+                title.textContent = 'INVENTORY';
+                title.style.color = '#e94560';
+                title.style.textAlign = 'center';
+                title.style.marginBottom = '15px';
+                
+                const itemsContainer = document.createElement('div');
+                itemsContainer.id = 'inventory-items';
+                itemsContainer.style.margin = '15px 0';
+                itemsContainer.style.maxHeight = '300px';
+                itemsContainer.style.overflowY = 'auto';
+                
+                const controls = document.createElement('div');
+                controls.style.textAlign = 'center';
+                controls.style.marginTop = '15px';
+                
+                const useButton = document.createElement('button');
+                useButton.className = 'btn';
+                useButton.textContent = 'Use Selected Item';
+                useButton.style.margin = '0 5px';
+                useButton.onclick = () => {
+                    if (game.inventory.selectedSlot < game.inventory.items.length) {
+                        useInventoryItem(game.inventory.selectedSlot);
+                    }
+                };
+                
+                const closeButton = document.createElement('button');
+                closeButton.className = 'btn';
+                closeButton.textContent = 'Close';
+                closeButton.style.margin = '0 5px';
+                closeButton.onclick = () => {
+                    document.body.removeChild(invModal);
+                    // Resume game if it was paused
+                    if (game.state === GameState.PAUSED && pauseBtn.textContent === 'RESUME [P]') {
+                        game.state = GameState.PLAYING;
+                        pauseBtn.textContent = 'PAUSE [P]';
+                        pauseBtn.classList.remove('active');
+                    }
+                };
+                
+                controls.appendChild(useButton);
+                controls.appendChild(closeButton);
+                
+                modalContent.appendChild(title);
+                modalContent.appendChild(itemsContainer);
+                modalContent.appendChild(controls);
+                invModal.appendChild(modalContent);
+                
+                document.body.appendChild(invModal);
+            }
+            
+            // Update items display
+            updateInventoryDisplay();
+        }
+
+        // Update inventory display
+        function updateInventoryDisplay() {
+            const itemsContainer = document.getElementById('inventory-items');
+            if (!itemsContainer) return;
+            
+            itemsContainer.innerHTML = '';
+            
+            if (game.inventory.items.length === 0) {
+                const emptyMsg = document.createElement('p');
+                emptyMsg.textContent = 'Inventory is empty';
+                emptyMsg.style.color = '#888';
+                emptyMsg.style.textAlign = 'center';
+                emptyMsg.style.margin = '20px';
+                itemsContainer.appendChild(emptyMsg);
+            } else {
+                game.inventory.items.forEach((item, index) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.style.display = 'flex';
+                    itemDiv.style.justifyContent = 'space-between';
+                    itemDiv.style.alignItems = 'center';
+                    itemDiv.style.padding = '8px';
+                    itemDiv.style.margin = '5px 0';
+                    itemDiv.style.background = index === game.inventory.selectedSlot ? 'rgba(78, 204, 163, 0.3)' : '#232931';
+                    itemDiv.style.border = index === game.inventory.selectedSlot ? '2px solid #4ecca3' : '1px solid #444';
+                    itemDiv.style.borderRadius = '4px';
+                    itemDiv.style.cursor = 'pointer';
+                    itemDiv.onclick = () => {
+                        game.inventory.selectedSlot = index;
+                        updateInventoryDisplay();
+                    };
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = `${item.type.name} (${item.amount})`;
+                    nameSpan.style.color = '#eee';
+                    
+                    const iconSpan = document.createElement('span');
+                    iconSpan.textContent = item.type.icon;
+                    iconSpan.style.fontSize = '18px';
+                    iconSpan.style.marginRight = '10px';
+                    
+                    itemDiv.appendChild(iconSpan);
+                    itemDiv.appendChild(nameSpan);
+                    itemsContainer.appendChild(itemDiv);
+                });
+            }
+        }
+
+        // Use an item from inventory
+        function useInventoryItem(index) {
+            if (index >= 0 && index < game.inventory.items.length) {
+                const item = game.inventory.items[index];
+
+                // Handle special items that have active effects
+                if (item.type.resource === 'speed_boost' || item.type.resource === 'grenades') {
+                    // Use the item through the player's method
+                    if (game.player.useItem(item.type.resource)) {
+                        // Remove the item after use
+                        game.inventory.items.splice(index, 1);
+
+                        // Update display
+                        updateInventoryDisplay();
+
+                        // Play sound
+                        audio.playPickup();
+                    }
+                } else {
+                    // Add resource to player
+                    if (item.type.resource === 'health') {
+                        game.resources.health = Math.min(100, game.resources.health + item.amount);
+                    } else {
+                        game.resources[item.type.resource] += item.amount;
+                    }
+
+                    // Remove item from inventory
+                    game.inventory.items.splice(index, 1);
+
+                    // Update display
+                    updateInventoryDisplay();
+
+                    // Play sound
+                    audio.playPickup();
+                }
+            }
+        }
+
         // Update resource warnings
         function updateResourceWarnings() {
             const healthEl = document.getElementById('health').parentElement;
@@ -1951,6 +2487,42 @@
                 prompt.classList.add('show');
             } else {
                 prompt.classList.remove('show');
+            }
+        }
+
+        // Show build preview information
+        function updateBuildPreview() {
+            if (game.buildMode && game.selectedBuildType) {
+                // Show what building is selected
+                const buildInfo = document.getElementById('build-info');
+                let infoElement = buildInfo;
+                
+                if (!infoElement) {
+                    infoElement = document.createElement('div');
+                    infoElement.id = 'build-info';
+                    infoElement.style.position = 'absolute';
+                    infoElement.style.bottom = '120px';
+                    infoElement.style.left = '50%';
+                    infoElement.style.transform = 'translateX(-50%)';
+                    infoElement.style.background = 'rgba(78, 204, 163, 0.9)';
+                    infoElement.style.color = '#1a1a2e';
+                    infoElement.style.padding = '8px 16px';
+                    infoElement.style.borderRadius = '4px';
+                    infoElement.style.fontWeight = 'bold';
+                    infoElement.style.fontSize = '14px';
+                    infoElement.style.zIndex = '5';
+                    infoElement.style.textAlign = 'center';
+                    document.getElementById('game-container').appendChild(infoElement);
+                }
+                
+                infoElement.textContent = `PLACING: ${game.selectedBuildType.name} - Press ESC to cancel`;
+                infoElement.style.display = 'block';
+            } else {
+                // Hide build info if not in build mode
+                const buildInfo = document.getElementById('build-info');
+                if (buildInfo) {
+                    buildInfo.style.display = 'none';
+                }
             }
         }
 
@@ -2121,6 +2693,9 @@
                 ctx.font = '10px Courier New';
                 ctx.fillText(costText, game.mouse.x, game.mouse.y + type.height / 2 + 15);
             }
+            
+            // Update build preview display
+            updateBuildPreview();
 
             // Draw particles (on top of everything)
             particles.draw(ctx);
@@ -2240,13 +2815,28 @@
                         const dist = pickup.distanceTo(game.player.x, game.player.y);
                         if (dist < pickup.radius + game.player.radius) {
                             pickup.alive = false;
-                            // Add resource (cap health at 100)
-                            if (pickup.type.resource === 'health') {
-                                game.resources.health = Math.min(100, game.resources.health + pickup.type.amount);
+                            
+                            // Try to add to inventory first, if not possible add to resources
+                            if (game.inventory.items.length < game.inventory.maxSize) {
+                                // Add to inventory
+                                game.inventory.items.push({
+                                    type: pickup.type,
+                                    amount: pickup.type.amount
+                                });
+                                game.score += 5;
+                                
+                                // Show inventory notification
+                                showInventoryNotification(`+${pickup.type.amount} ${pickup.type.name}`);
                             } else {
-                                game.resources[pickup.type.resource] += pickup.type.amount;
+                                // If inventory is full, add to resources directly
+                                if (pickup.type.resource === 'health') {
+                                    game.resources.health = Math.min(100, game.resources.health + pickup.type.amount);
+                                } else {
+                                    game.resources[pickup.type.resource] += pickup.type.amount;
+                                }
+                                game.score += 5;
                             }
-                            game.score += 5;
+                            
                             // Sound and particles
                             audio.playPickup();
                             particles.emit(pickup.x, pickup.y, pickup.type.color, 8, 80);
@@ -2258,7 +2848,7 @@
 
                 // Update buildings
                 for (const building of game.buildings) {
-                    building.update(deltaTime, game.zombies, game.projectiles);
+                    building.update(deltaTime, game.zombies, game.projectiles, game.player);
                 }
                 // Remove destroyed buildings
                 game.buildings = game.buildings.filter(b => b.alive);
@@ -2405,7 +2995,9 @@
                 health: 100,
                 ammo: 30,
                 wood: 0,
-                metal: 0
+                metal: 0,
+                grenades: 0,
+                speed_boost: 0
             };
             game.player = new Player(400, 250);
             game.zombies = [];
@@ -2426,6 +3018,17 @@
             audio.resume();
             initGame();
             overlay.classList.add('hidden');
+        });
+
+        // Allow starting the game by pressing Enter key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && game.state === GameState.MENU) {
+                // Initialize audio on first user interaction (required by browsers)
+                audio.init();
+                audio.resume();
+                initGame();
+                overlay.classList.add('hidden');
+            }
         });
 
         pauseBtn.addEventListener('click', () => {
@@ -2459,6 +3062,75 @@
             }
         });
 
+        // Build menu elements
+        const buildMenu = document.getElementById('build-menu');
+        const closeBuildMenuBtn = document.getElementById('close-build-menu');
+        const buildOptions = document.querySelectorAll('.build-option');
+
+        // Build button event listener
+        document.getElementById('build-btn').addEventListener('click', () => {
+            if (game.state === GameState.PLAYING) {
+                game.buildMode = !game.buildMode;
+                if (!game.buildMode) {
+                    game.selectedBuildType = null;
+                    buildMenu.classList.add('hidden');
+                } else {
+                    buildMenu.classList.remove('hidden');
+                    // Highlight the currently selected build type
+                    buildOptions.forEach(option => {
+                        option.classList.remove('selected');
+                        if (game.selectedBuildType && option.dataset.type === game.selectedBuildType.name.toUpperCase()) {
+                            option.classList.add('selected');
+                        }
+                    });
+                }
+                document.getElementById('build-btn').classList.toggle('active', game.buildMode);
+            }
+        });
+
+        // Build option selection
+        buildOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const type = option.dataset.type;
+                game.selectedBuildType = BuildingType[type];
+
+                // Update UI to show selected
+                buildOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+            });
+        });
+
+        // Close build menu
+        closeBuildMenuBtn.addEventListener('click', () => {
+            game.buildMode = false;
+            game.selectedBuildType = null;
+            buildMenu.classList.add('hidden');
+            document.getElementById('build-btn').classList.remove('active');
+        });
+
+        // Inventory button event listener
+        document.getElementById('inventory-btn').addEventListener('click', () => {
+            if (game.state === GameState.PLAYING) {
+                showInventoryModal();
+                // Pause the game when inventory is opened
+                if (game.state === GameState.PLAYING) {
+                    game.state = GameState.PAUSED;
+                    pauseBtn.textContent = 'RESUME [P]';
+                    pauseBtn.classList.add('active');
+                }
+            }
+        });
+
+        // Also close build menu with escape key when in build mode
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === KEY_BINDINGS.escape && game.buildMode) {
+                game.buildMode = false;
+                game.selectedBuildType = null;
+                buildMenu.classList.add('hidden');
+                document.getElementById('build-btn').classList.remove('active');
+            }
+        });
+
         // Keyboard input
         document.addEventListener('keydown', (e) => {
             game.keys[e.key.toLowerCase()] = true;
@@ -2471,6 +3143,17 @@
             // Mute toggle
             if (e.key.toLowerCase() === KEY_BINDINGS.mute) {
                 muteBtn.click();
+            }
+
+            // Inventory toggle
+            if (e.key.toLowerCase() === KEY_BINDINGS.inventory && game.state === GameState.PLAYING) {
+                showInventoryModal();
+                // Pause the game when inventory is opened
+                if (game.state === GameState.PLAYING) {
+                    game.state = GameState.PAUSED;
+                    pauseBtn.textContent = 'RESUME [P]';
+                    pauseBtn.classList.add('active');
+                }
             }
 
             // Rescue key
@@ -2492,39 +3175,59 @@
                 }
             }
 
-            // Build mode toggle
+            // Build mode toggle - only for keyboard shortcut
             if (e.key.toLowerCase() === KEY_BINDINGS.build && game.state === GameState.PLAYING) {
                 game.buildMode = !game.buildMode;
                 if (!game.buildMode) {
                     game.selectedBuildType = null;
+                    buildMenu.classList.add('hidden');
+                } else {
+                    buildMenu.classList.remove('hidden');
+                    // Highlight the currently selected build type
+                    buildOptions.forEach(option => {
+                        option.classList.remove('selected');
+                        if (game.selectedBuildType && option.dataset.type === game.selectedBuildType.name.toUpperCase()) {
+                            option.classList.add('selected');
+                        }
+                    });
                 }
                 document.getElementById('build-btn').classList.toggle('active', game.buildMode);
             }
 
-            // Quick build keys (1-4)
+            // Quick build keys (1-5)
             if (game.state === GameState.PLAYING) {
                 if (e.key === KEY_BINDINGS.build1) {
                     game.buildMode = true;
                     game.selectedBuildType = BuildingType.BARRICADE;
                     document.getElementById('build-btn').classList.add('active');
+                    buildMenu.classList.remove('hidden');
                 } else if (e.key === KEY_BINDINGS.build2) {
                     game.buildMode = true;
                     game.selectedBuildType = BuildingType.WALL;
                     document.getElementById('build-btn').classList.add('active');
+                    buildMenu.classList.remove('hidden');
                 } else if (e.key === KEY_BINDINGS.build3) {
                     game.buildMode = true;
                     game.selectedBuildType = BuildingType.TURRET;
                     document.getElementById('build-btn').classList.add('active');
+                    buildMenu.classList.remove('hidden');
                 } else if (e.key === KEY_BINDINGS.build4) {
                     game.buildMode = true;
                     game.selectedBuildType = BuildingType.SPIKE_TRAP;
                     document.getElementById('build-btn').classList.add('active');
+                    buildMenu.classList.remove('hidden');
+                } else if (e.key === KEY_BINDINGS.build5) {
+                    game.buildMode = true;
+                    game.selectedBuildType = BuildingType.MACHINE_GUN;
+                    document.getElementById('build-btn').classList.add('active');
+                    buildMenu.classList.remove('hidden');
                 }
 
                 // Cancel build mode with Escape
                 if (e.key === KEY_BINDINGS.escape && game.buildMode) {
                     game.buildMode = false;
                     game.selectedBuildType = null;
+                    buildMenu.classList.add('hidden');
                     document.getElementById('build-btn').classList.remove('active');
                 }
             }

@@ -35,6 +35,9 @@ credentials.json
 # Tool-specific (Ralph / Agent)
 .ralph/
 
+# Skills directory
+.skills/
+
 # User Requested: Ignore all Markdown files
 *.md
 **/*.md
